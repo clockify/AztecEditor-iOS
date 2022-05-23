@@ -385,12 +385,12 @@ open class FormatBar: UIView {
             if let alternativeIcons = item.alternativeIcons, alternativeIcons.count > 0 {
                 // If the item has a matching alternative identifier, use that first and set selected
                 if let alternativeIdentifier = alternativeIcons.keys.first(where: { identifiers.contains($0) }) {
-                    item.useAlternativeIconForIdentifier(alternativeIdentifier)
+//                    item.useAlternativeIconForIdentifier(alternativeIdentifier)
                     item.isSelected = true
                 } else {
                     // If the item has alternative identifiers, but none of them match,
                     // reset the icon and deselect it
-                    item.resetIcon()
+//                    item.resetIcon()
                     item.isSelected = false
                 }
             } else if let identifier = item.identifier {
@@ -658,7 +658,7 @@ private extension FormatBar {
         scrollableStackView.axis = .horizontal
         scrollableStackView.spacing = Constants.stackViewCompactSpacing
         scrollableStackView.alignment = .center
-        scrollableStackView.distribution = .equalSpacing
+        scrollableStackView.distribution = .fill
         scrollableStackView.translatesAutoresizingMaskIntoConstraints = false
         scrollableStackView.flipIfNeeded(for: layoutDirection)
     }
@@ -764,11 +764,9 @@ private extension FormatBar {
         ])
 
         NSLayoutConstraint.activate([
-            scrollableStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor),
-            scrollableStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor),
-            scrollableStackView.topAnchor.constraint(equalTo: scrollView.topAnchor),
-            scrollableStackView.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            scrollableStackView.heightAnchor.constraint(equalTo: scrollView.heightAnchor),
+            scrollableStackView.leadingAnchor.constraint(equalTo: scrollView.leadingAnchor, constant: 2),
+            scrollableStackView.trailingAnchor.constraint(equalTo: scrollView.trailingAnchor, constant: 2),
+            scrollableStackView.centerYAnchor.constraint(equalTo: scrollView.centerYAnchor)
         ])
     }
 }

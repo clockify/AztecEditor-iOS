@@ -21,8 +21,8 @@ open class Header: ParagraphProperty {
 
         public static var fontSizeMap: [HeaderType: Float] = {
             return [
-                .h1: 24,
-                .h2: 22,
+                .h1: 32,
+                .h2: 24,
                 .h3: 20,
                 .h4: 18,
                 .h5: 16,
