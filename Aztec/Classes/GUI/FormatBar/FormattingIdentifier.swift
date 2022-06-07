@@ -35,6 +35,7 @@ extension FormattingIdentifier {
     public static let sourcecode = FormattingIdentifier("sourcecode")
     public static let strikethrough = FormattingIdentifier("strikethrough")
     public static let underline = FormattingIdentifier("underline")
+    public static let checkedlist = FormattingIdentifier("checkedlist")
     public static let unorderedlist = FormattingIdentifier("unorderedlist")
     public static let mark = FormattingIdentifier("mark")
 }

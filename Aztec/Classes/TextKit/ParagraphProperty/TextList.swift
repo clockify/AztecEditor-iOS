@@ -13,11 +13,13 @@ open class TextList: ParagraphProperty {
     public enum Style: Int {
         case ordered
         case unordered
+        case checked
 
         func markerText(forItemNumber number: Int) -> String {
             switch self {
             case .ordered:      return "\(number)."
             case .unordered:    return "\u{2022}"
+            case .checked:      return "\u{204C}"
             }
         }
     }

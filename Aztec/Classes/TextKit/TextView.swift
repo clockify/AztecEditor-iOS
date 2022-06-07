@@ -1119,6 +1119,23 @@ open class TextView: UITextView {
         }
         forceRedrawCursorAfterDelay()
     }
+    
+    /// Adds or removes a checked list style from the specified range.
+    open func toggleCheckedList(range: NSRange) {
+        ensureInsertionOfEndOfLineForEmptyParagraphAtEndOfFile(forApplicationRange: range)
+
+        let formatter = TextListFormatter(style: .checked, placeholderAttributes: typingAttributes)
+        toggle(formatter: formatter, atRange: range)
+
+        let liFormatter = LiFormatter(placeholderAttributes: typingAttributes)
+        let isOlTagPresent = formatter.present(in: storage, at: range)
+        let isLiTagPresent = liFormatter.present(in: storage, at: range)
+
+        if isOlTagPresent != isLiTagPresent {
+            toggle(formatter: liFormatter, atRange: range)
+        }
+        forceRedrawCursorAfterDelay()
+    }
 
 
     /// Adds or removes a unordered list style from the specified range.
