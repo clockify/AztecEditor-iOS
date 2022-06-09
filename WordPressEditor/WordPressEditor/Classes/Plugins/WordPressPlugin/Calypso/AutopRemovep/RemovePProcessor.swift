@@ -72,20 +72,20 @@ class RemovePProcessor: Processor {
         output = output.replacingMatches(of: "<div( [^>]*)?>\\s*<p>", with: "<div$1>\n\n", options: .caseInsensitive)
 
         // Remove paragraph tags.
-        output = output.replacingMatches(of: "\\s*<p>", with: "", options: .caseInsensitive)
-        output = output.replacingMatches(of: "\\s*<\\/p>\\s*", with: "\n\n", options: .caseInsensitive)
+//        output = output.replacingMatches(of: "\\s*<p>", with: "", options: .caseInsensitive)
+//        output = output.replacingMatches(of: "\\s*<\\/p>\\s*", with: "\n\n", options: .caseInsensitive)
 
         // Normalize white space chars and remove multiple line breaks.
         output = output.replacingMatches(of: "\n[\\s\\u00a0]+\n", with: "\n\n")
 
         // Replace <br> tags with line breaks.
-        output = output.replacingMatches(of: "(\\s*)<br ?\\/?>\\s*", options: .caseInsensitive, using: { (match, ranges) -> String in
-            if ranges.count > 0 && ranges[0].contains("\n") {
-                return "\n\n"
-            }
-
-            return "\n"
-        })
+//        output = output.replacingMatches(of: "(\\s*)<br ?\\/?>\\s*", options: .caseInsensitive, using: { (match, ranges) -> String in
+//            if ranges.count > 0 && ranges[0].contains("\n") {
+//                return "\n\n"
+//            }
+//
+//            return "\n"
+//        })
 
         // Fix line breaks around <div>.
         output = output.replacingMatches(of: "\\s*<div", with: "\n<div")
@@ -137,6 +137,8 @@ class RemovePProcessor: Processor {
         if preserveBr {
             output = output.replacingMatches(of: "<wp-temp-br([^>]*)>", with: "<br$1>")
         }
+        
+        output = output.replacingOccurrences(of: "\n", with: "")
 
         // Restore preserved tags.
         if preserve.count > 0 {

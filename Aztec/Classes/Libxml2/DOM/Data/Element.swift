@@ -118,6 +118,7 @@ extension Element {
     public static let track = Element("track")
     public static let u = Element("u")
     public static let ul = Element("ul")
+    public static let ulChecked = Element("ulChecked")
     public static let video = Element("video")
     public static let wbr = Element("wbr")
     public static let body = Element("body")

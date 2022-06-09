@@ -32,6 +32,7 @@ class GenericElementConverter: ElementConverter {
     lazy var strikethroughFormatter = StrikethroughFormatter()
     lazy var underlineFormatter = UnderlineFormatter()
     lazy var unorderedListFormatter = TextListFormatter(style: .unordered, increaseDepth: true)
+    lazy var checkedListFormatter = TextListFormatter(style: .checked, increaseDepth: true)
     lazy var codeFormatter = CodeFormatter()
     lazy var liFormatter = LiFormatter()
     lazy var superscriptFormatter = SuperscriptFormatter()
@@ -43,6 +44,7 @@ class GenericElementConverter: ElementConverter {
             .div: self.divFormatter,
             .ol: self.orderedListFormatter,
             .ul: self.unorderedListFormatter,
+            .ulChecked: self.checkedListFormatter,
             .strong: self.boldFormatter,
             .em: self.italicFormatter,
             .u: self.underlineFormatter,
@@ -238,6 +240,11 @@ private extension GenericElementConverter {
         
         for (key, formatter) in elementFormattersMap {
             if equivalentNames.contains(key) {
+                if key == .ul {
+                    if element.attributes.contains(where: {$0.name == "data-checked"}) {
+                        return elementFormattersMap.first(where: {$0.key == .ulChecked})!.value
+                    }
+                }
                 return formatter
             }
         }

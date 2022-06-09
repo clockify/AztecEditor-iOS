@@ -21,7 +21,8 @@ public class GutenbergOutputHTMLTreeProcessor: HTMLTreeProcessor {
             } else if element.type == .p {
                 // Our output serializer is a bit dumb, and it wraps gutenpack elements into P tags.
                 // If we find any, we remove them here.
-                return process(paragraph: element)
+//                return process(paragraph: element)
+                return [element]
             } else {
                 return [element]
             }

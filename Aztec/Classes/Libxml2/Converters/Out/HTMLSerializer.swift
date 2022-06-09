@@ -105,6 +105,10 @@ private extension HTMLSerializer {
             closing = ""
         }
         
+        if opening + children + closing == "\n<p></p>" {
+            return "\n<p><br></p>"
+        }
+        
         return opening + children + closing
     }
     

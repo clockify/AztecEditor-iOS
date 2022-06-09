@@ -1241,7 +1241,8 @@ open class TextView: UITextView {
             BlockquoteFormatter(),
             PreFormatter(placeholderAttributes: self.defaultAttributes),
             TextListFormatter(style: .ordered),
-            TextListFormatter(style: .unordered)
+            TextListFormatter(style: .unordered),
+            TextListFormatter(style: .checked)
         ]
 
         let activeTypingAttributes = typingAttributes
