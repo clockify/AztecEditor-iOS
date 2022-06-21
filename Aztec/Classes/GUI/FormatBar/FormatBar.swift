@@ -316,8 +316,8 @@ open class FormatBar: UIView {
         addSubview(topDivider)
         addSubview(bottomDivider)
 
-        overflowToggleItem.translatesAutoresizingMaskIntoConstraints = false
-        addSubview(overflowToggleItem)
+//        overflowToggleItem.translatesAutoresizingMaskIntoConstraints = false
+//        addSubview(overflowToggleItem)
 
         trailingItemContainer.translatesAutoresizingMaskIntoConstraints = false
         addSubview(trailingItemContainer)
@@ -396,6 +396,25 @@ open class FormatBar: UIView {
             } else if let identifier = item.identifier {
                 // Otherwise, select it if the identifier matches
                 item.isSelected = identifiers.contains(identifier)
+                if item.identifier == "p" {
+                    item.isSelected = false
+                }
+            }
+        }
+    }
+    
+    public func updateFormatBar(with identifiers: Set<FormattingIdentifier>) {
+        identifiers.forEach { identifier in
+            if identifier == FormattingIdentifier.p || identifier == FormattingIdentifier.header1 || identifier == FormattingIdentifier.header2 || identifier == FormattingIdentifier.header3 {
+                if let titleBar = scrollableStackView.subviews[0] as? FormatBarItem {
+                    let titleText = getTextViewTitleText(for: identifier)
+                    titleBar.setTitle(titleText, for: .normal)
+                    
+                    let imageInsents: CGFloat = identifier == .p ? Constants.textButtonExtendedLeading : Constants.textButtonNormalLeading
+                    
+                    titleBar.imageEdgeInsets = UIEdgeInsets(top: 0, left: imageInsents, bottom: 0, right: 0)
+                    titleBar.titleEdgeInsets = UIEdgeInsets(top: 0, left: -imageInsents, bottom: 0, right: 0)
+                }
             }
         }
     }
@@ -588,6 +607,28 @@ open class FormatBar: UIView {
 //
 private extension FormatBar {
 
+    func checkIsTextView(button: FormatBarItem) -> Bool {
+        return button.identifier == FormattingIdentifier.p.rawValue || button.identifier == FormattingIdentifier.header1.rawValue || button.identifier == FormattingIdentifier.header2.rawValue || button.identifier == FormattingIdentifier.header3.rawValue
+    }
+
+    func getTextViewTitle(button: FormatBarItem) -> String {
+        return getTextViewTitleText(for: FormattingIdentifier(rawValue: button.identifier!)!)
+    }
+    
+    func getTextViewTitleText(for identifier: FormattingIdentifier) -> String {
+        if identifier == FormattingIdentifier.p {
+            return "Normal"
+        }else if identifier == FormattingIdentifier.header1 {
+            return "Headline 1"
+        }else if identifier == FormattingIdentifier.header2 {
+            return "Headline 2"
+        }else if identifier == FormattingIdentifier.header3 {
+            return "Headline 3"
+        }
+        
+        return ""
+    }
+
     /// Populates the bar with the combined default and overflow items.
     /// Overflow items will be hidden by default.
     ///
@@ -598,6 +639,30 @@ private extension FormatBar {
 
         scrollableStackView.addArrangedSubviews(defaultItems)
         scrollableStackView.addArrangedSubviews(overflowItems)
+
+        scrollableStackView.subviews.forEach { subView in
+            subView.backgroundColor = Constants.buttonBackgroundColor
+
+            if let titleButton = subView as? FormatBarItem, checkIsTextView(button: titleButton) {
+                titleButton.widthAnchor.constraint(equalToConstant: Constants.textButtonWidth).isActive = true
+                titleButton.backgroundColor = Constants.buttonBackgroundColor
+                titleButton.tintColor = .white
+                titleButton.setTitle(getTextViewTitle(button: titleButton), for: .normal)
+                titleButton.setImage(Constants.textButtonImage, for: .normal)
+                titleButton.semanticContentAttribute = .forceRightToLeft
+                
+                titleButton.layer.cornerRadius = Constants.buttonCornerRadius
+                scrollableStackView.setCustomSpacing(Constants.buttonSpacing, after: titleButton)
+
+                titleButton.layoutIfNeeded()
+            }else if let formatBarItem = subView as? FormatBarItem {
+                if formatBarItem.identifier == FormattingIdentifier.bold.rawValue {
+                    formatBarItem.roundCorners([.topLeft, .bottomLeft], radius: Constants.buttonCornerRadius)
+                }else if formatBarItem.identifier == FormattingIdentifier.link.rawValue {
+                    formatBarItem.roundCorners([.topRight, .bottomRight], radius: Constants.buttonCornerRadius)
+                }
+            }
+        }
 
         updateVisibleItemsForCurrentBounds()
     }
@@ -728,12 +793,12 @@ private extension FormatBar {
             trailingItemLeadingConstraint = trailingItemContainer.leadingAnchor.constraint(greaterThanOrEqualTo: scrollableStackView.trailingAnchor)
         }
 
-        NSLayoutConstraint.activate([
-            overflowToggleItem.topAnchor.constraint(equalTo: topAnchor),
-            overflowToggleItem.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
-            overflowLeadingConstraint,
-            overflowTrailingConstraint
-        ])
+//        NSLayoutConstraint.activate([
+//            overflowToggleItem.topAnchor.constraint(equalTo: topAnchor),
+//            overflowToggleItem.bottomAnchor.constraint(equalTo: scrollView.bottomAnchor),
+//            overflowLeadingConstraint,
+//            overflowTrailingConstraint
+//        ])
 
         NSLayoutConstraint.activate([
             trailingItemContainer.topAnchor.constraint(equalTo: topAnchor),
@@ -876,6 +941,22 @@ extension FormatBar {
         static let defaultBarHeight = CGFloat(44)
         static let defaultButtonWidth = Constants.defaultBarHeight
         static let defaultButtonHeight = Constants.defaultBarHeight
+        static let headers = [Header.HeaderType.none, .h1, .h2, .h3]
+        static let lists = [TextList.Style.unordered, .ordered, .checked]
+        
+        static let tintColor: UIColor = UIColor(hex: "606089")
+        static let highlightTintColor: UIColor = UIColor(hex: "F85383")
+        
+        static let textButtonWidth: CGFloat = 135
+        static let buttonBackgroundColor: UIColor = UIColor(hex: "272637")
+        
+        static let textButtonImage: UIImage = UIImage(named: "chevron")!
+        
+        static let textButtonNormalLeading: CGFloat = 10
+        static let textButtonExtendedLeading: CGFloat = 30
+        static let buttonCornerRadius: CGFloat = 12
+        static let buttonSpacing: CGFloat = 10
+
     }
 }
 
@@ -940,5 +1021,34 @@ private extension UIView {
         if layoutDirection == .rightToLeft {
             transform = CGAffineTransform(scaleX: -1, y: 1)
         }
+    }
+}
+
+extension UIColor {
+    convenience init(hex: String) {
+        let hexString = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int = UInt64()
+        Scanner(string: hexString).scanHexInt64(&int)
+        let a, r, g, b: UInt64
+        switch hex.count {
+        case 3: // RGB (12-bit)
+            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
+        case 6: // RGB (24-bit)
+            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8: // ARGB (32-bit)
+            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        default:
+            (a, r, g, b) = (255, 0, 0, 0)
+        }
+        self.init(red: CGFloat(r) / 255, green: CGFloat(g) / 255, blue: CGFloat(b) / 255, alpha: CGFloat(a) / 255)
+    }
+}
+extension UIView {
+    func roundCorners(_ corners: UIRectCorner, radius: CGFloat) {
+        self.layoutIfNeeded()
+        let path = UIBezierPath(roundedRect: self.bounds, byRoundingCorners: corners, cornerRadii: CGSize(width: radius, height: radius))
+        let mask = CAShapeLayer()
+        mask.path = path.cgPath
+        self.layer.mask = mask
     }
 }

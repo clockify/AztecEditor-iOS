@@ -723,6 +723,8 @@ extension EditorDemoController {
                     self?.richTextView.toggleUnorderedList(range: range)
                 case .ordered:
                     self?.richTextView.toggleOrderedList(range: range)
+                case .checked:
+                    self?.richTextView.toggleUnorderedList(range: range)
                 }
                 
                 self?.optionsTablePresenter.dismiss()
@@ -1330,6 +1332,7 @@ private extension TextList.Style {
         switch self {
         case .ordered:   return FormattingIdentifier.orderedlist
         case .unordered: return FormattingIdentifier.unorderedlist
+        case .checked: return FormattingIdentifier.unorderedlist
         }
     }
 
@@ -1337,6 +1340,7 @@ private extension TextList.Style {
         switch self {
         case .ordered: return "Ordered List"
         case .unordered: return "Unordered List"
+        case .checked: return "Checked"
         }
     }
 
