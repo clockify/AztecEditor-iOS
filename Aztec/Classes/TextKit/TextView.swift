@@ -107,6 +107,17 @@ public protocol TextViewAttachmentImageProvider: AnyObject {
     func textView(_ textView: TextView, imageFor attachment: NSTextAttachment, with size: CGSize) -> UIImage?
 }
 
+// MARK: - TextViewChecklistDelegate
+//
+public protocol TextViewChecklistDelegate: AnyObject {
+
+    /// Called a text view command toggled a style.
+    ///
+    /// If you have a format bar, you should probably update it here.
+    ///
+    func textViewShouldReconfigureChecklist(checklistInfos: [ChecklistInfo])
+}
+
 
 // MARK: - TextViewFormattingDelegate
 //
@@ -149,12 +160,18 @@ public protocol TextViewPasteboardDelegate: AnyObject {
     func tryPastingString(in textView: TextView) -> Bool
 }
 
+public struct ChecklistInfo {
+    public var position: CGRect!
+    public var isChecked: Bool!
+}
+
 // MARK: - TextView
 //
 open class TextView: UITextView {
 
     // MARK: - Aztec Delegates
 
+    open weak var textChecklistDelegate: TextViewChecklistDelegate?
     /// The media delegate takes care of providing remote media when requested by the `TextView`.
     /// If this is not set, all remove images will be left blank.
     ///
@@ -195,6 +212,9 @@ open class TextView: UITextView {
             customInputViewController = newValue
         }
     }
+    
+    var isCheckViewConfigureInProgress: Bool = false
+    public var checkView: UIView?
     
     // MARK: - Behavior configuration
     
@@ -716,6 +736,10 @@ open class TextView: UITextView {
         ensureRemovalOfLinkTypingAttribute(at: selectedRange)
 
         super.insertText(text)
+        
+        if text == "\n" && typingAttributes.paragraphStyle().lists.first?.style == .checked {
+            configureCheckviews()
+        }
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
 
@@ -774,7 +798,12 @@ open class TextView: UITextView {
      
         caretRect.origin.y = usedLineFragment.origin.y + textContainerInset.top
         caretRect.size.height = usedLineFragment.size.height
-
+        
+        if !caretRect.isEmpty {
+            if !isCheckViewConfigureInProgress {
+                configureCheckviews()
+            }
+        }
         return caretRect
     }
 
@@ -819,6 +848,59 @@ open class TextView: UITextView {
         formattingDelegate?.textViewCommandToggledAStyle()
     }
     
+    public func changeValueForCheckAttribute(at rect: CGRect, updateValue: Bool) {
+        isCheckViewConfigureInProgress = true
+        self.attributedText.enumerateParagraphRanges(spanning: self.attributedText.rangeOfEntireString) { (range, enclosingRange) in
+            guard self.attributedText.string.isStartOfNewLine(atUTF16Offset: enclosingRange.location),
+                  let paragraphStyle = self.attributedText.attribute(.paragraphStyle, at: enclosingRange.location, effectiveRange: nil) as? ParagraphStyle,
+            let list = paragraphStyle.lists.last
+            else {
+                return
+            }
+            if list.style == .checked {
+                    let position = self.position(from: self.beginningOfDocument , offset: enclosingRange.location)!
+                    let checklistRect = self.caretRect(for: position)
+                if checklistRect.origin.y == rect.origin.y {
+                    switch list.representation!.kind {
+                    case .element(let element):
+                        element.attributes.set(String(updateValue), for: "data-checked")
+                        print("asd")
+                        default: break
+                    }
+                }
+            }
+        }
+        isCheckViewConfigureInProgress = false
+    }
+    
+    public func configureCheckviews() {
+        isCheckViewConfigureInProgress = true
+        var checklistsInfo: [ChecklistInfo] = []
+        self.attributedText.enumerateParagraphRanges(spanning: self.attributedText.rangeOfEntireString) { (range, enclosingRange) in
+            guard self.attributedText.string.isStartOfNewLine(atUTF16Offset: enclosingRange.location),
+                  let paragraphStyle = self.attributedText.attribute(.paragraphStyle, at: enclosingRange.location, effectiveRange: nil) as? ParagraphStyle,
+            let list = paragraphStyle.lists.last
+            else {
+                return
+            }
+            if list.style == .checked {
+                    let position = self.position(from: self.beginningOfDocument , offset: enclosingRange.location)!
+                    let rect = self.caretRect(for: position)
+                if rect.origin.y > 0 {
+                    switch list.representation!.kind {
+                    case .element(let element):
+                        let isChecked = Bool((element.attributes.first(where: {$0.name == "data-checked"})?.value.toString())!)
+                        checklistsInfo.append(ChecklistInfo(position: rect, isChecked: isChecked))
+                        default: break
+                    }
+                }
+            }
+        }
+        
+        textChecklistDelegate?.textViewShouldReconfigureChecklist(checklistInfos: checklistsInfo)
+        isCheckViewConfigureInProgress = false
+    }
+    
     public func replace(_ range: NSRange, withHTML html: String) {
         
         let string = storage.htmlConverter.attributedString(from: html, defaultAttributes: defaultAttributes)
@@ -851,6 +933,7 @@ open class TextView: UITextView {
         .link: LinkFormatter(),
         .orderedlist: TextListFormatter(style: .ordered),
         .unorderedlist: TextListFormatter(style: .unordered),
+        .checkedlist: TextListFormatter(style: .checked),
         .blockquote: BlockquoteFormatter(),
         .header1: HeaderFormatter(headerLevel: .h1),
         .header2: HeaderFormatter(headerLevel: .h2),

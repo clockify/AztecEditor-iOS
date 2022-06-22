@@ -60,7 +60,7 @@ public class HTMLRepresentation: NSObject, NSCoding {
 //
 public class HTMLElementRepresentation: NSObject, CustomReflectable, NSCoding {
     @objc let name: String
-    @objc let attributes: [Attribute]
+    @objc var attributes: [Attribute]
 
     init(name: String, attributes: [Attribute]) {
         self.name = name
