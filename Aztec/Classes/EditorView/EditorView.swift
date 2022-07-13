@@ -157,7 +157,9 @@ public class EditorView: UIView {
         case .html:
             return htmlTextView.text
         case .richText:
-            return richTextView.getHTML()
+            var html = richTextView.getHTML()
+            html = html.replacingOccurrences(of: "\n", with: "")
+            return html
         }
     }
     

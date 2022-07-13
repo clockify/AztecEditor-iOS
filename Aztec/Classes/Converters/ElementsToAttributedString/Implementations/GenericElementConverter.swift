@@ -37,9 +37,11 @@ class GenericElementConverter: ElementConverter {
     lazy var liFormatter = LiFormatter()
     lazy var superscriptFormatter = SuperscriptFormatter()
     lazy var subscriptFormatter = SubscriptFormatter()
+    lazy var spanFormatter = SpanFormatter(for: [:])
     
     public lazy var elementFormattersMap: [Element: AttributeFormatter] = {
         return [
+            .span: self.spanFormatter,
             .blockquote: self.blockquoteFormatter,
             .div: self.divFormatter,
             .ol: self.orderedListFormatter,

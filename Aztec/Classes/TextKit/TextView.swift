@@ -213,7 +213,6 @@ open class TextView: UITextView {
         }
     }
     
-    var isCheckViewConfigureInProgress: Bool = false
     public var checkView: UIView?
     
     // MARK: - Behavior configuration
@@ -465,6 +464,7 @@ open class TextView: UITextView {
         adjustsFontForContentSizeCategory = true
 
         storage.attachmentsDelegate = self
+        storage.checkListDelegate = self
         font = defaultFont
         linkTextAttributes = [.underlineStyle: NSNumber(value: NSUnderlineStyle.single.rawValue), .foregroundColor: tintColor as Any]
         typingAttributes = defaultAttributes
@@ -756,11 +756,10 @@ open class TextView: UITextView {
             deletionRange.length = 1
         }
         if storage.length > 0 {
-            deletedString = storage.attributedSubstring(from: deletionRange)
+            deletedString = storage.attributedSubstring(from: deletionRange) 
         }
         
         ensureRemovalOfParagraphStylesBeforeRemovingCharacter(at: selectedRange)
-
         super.deleteBackward()
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
@@ -768,6 +767,7 @@ open class TextView: UITextView {
         ensureCursorRedraw(afterEditing: deletedString.string)
         if shouldRecalculateTypingAttributesOnDeleteBackward {
             recalculateTypingAttributes()
+            configureCheckviews()
         }
         notifyTextViewDidChange()
     }
@@ -799,11 +799,11 @@ open class TextView: UITextView {
         caretRect.origin.y = usedLineFragment.origin.y + textContainerInset.top
         caretRect.size.height = usedLineFragment.size.height
         
-        if !caretRect.isEmpty {
-            if !isCheckViewConfigureInProgress {
-                configureCheckviews()
-            }
-        }
+//        if !caretRect.isEmpty {
+//            if !isCheckViewConfigureInProgress {
+//                configureCheckviews()
+//            }
+//        }
         return caretRect
     }
 
@@ -849,7 +849,6 @@ open class TextView: UITextView {
     }
     
     public func changeValueForCheckAttribute(at rect: CGRect, updateValue: Bool) {
-        isCheckViewConfigureInProgress = true
         self.attributedText.enumerateParagraphRanges(spanning: self.attributedText.rangeOfEntireString) { (range, enclosingRange) in
             guard self.attributedText.string.isStartOfNewLine(atUTF16Offset: enclosingRange.location),
                   let paragraphStyle = self.attributedText.attribute(.paragraphStyle, at: enclosingRange.location, effectiveRange: nil) as? ParagraphStyle,
@@ -870,13 +869,11 @@ open class TextView: UITextView {
                 }
             }
         }
-        isCheckViewConfigureInProgress = false
     }
     
     public func configureCheckviews() {
-        isCheckViewConfigureInProgress = true
         var checklistsInfo: [ChecklistInfo] = []
-        self.attributedText.enumerateParagraphRanges(spanning: self.attributedText.rangeOfEntireString) { (range, enclosingRange) in
+        self.storage.textStore.enumerateParagraphRanges(spanning: self.storage.textStore.rangeOfEntireString) { (range, enclosingRange) in
             guard self.attributedText.string.isStartOfNewLine(atUTF16Offset: enclosingRange.location),
                   let paragraphStyle = self.attributedText.attribute(.paragraphStyle, at: enclosingRange.location, effectiveRange: nil) as? ParagraphStyle,
             let list = paragraphStyle.lists.last
@@ -898,7 +895,6 @@ open class TextView: UITextView {
         }
         
         textChecklistDelegate?.textViewShouldReconfigureChecklist(checklistInfos: checklistsInfo)
-        isCheckViewConfigureInProgress = false
     }
     
     public func replace(_ range: NSRange, withHTML html: String) {
@@ -2079,6 +2075,7 @@ private extension TextView {
         // make sure it's forcefully removed by the following calls.
         removeParagraphPropertiesFromTypingAttributes()
         removeParagraphProperties(from: selectedRange)
+        configureCheckviews()
 
         return true
     }
@@ -2397,4 +2394,12 @@ fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [Stri
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertFromNSAttributedStringKeyDictionary(_ input: [NSAttributedString.Key: Any]) -> [String: Any] {
 	return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
+}
+
+extension TextView: ChecklistAttachmentsDelegate {
+    func configureChecklists() {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            self.configureCheckviews()
+        }
+    }
 }

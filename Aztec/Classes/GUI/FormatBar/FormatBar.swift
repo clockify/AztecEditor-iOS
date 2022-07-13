@@ -321,6 +321,7 @@ open class FormatBar: UIView {
 
         trailingItemContainer.translatesAutoresizingMaskIntoConstraints = false
         addSubview(trailingItemContainer)
+        overflowToolbar(expand: true)
         configureConstraints()
     }
 

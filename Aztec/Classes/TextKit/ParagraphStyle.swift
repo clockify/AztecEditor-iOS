@@ -46,6 +46,12 @@ open class ParagraphStyle: NSMutableParagraphStyle, CustomReflectable {
             return property as? Blockquote
         }
     }
+    
+    var mention: [Mention] {
+        return properties.compactMap { property in
+            return property as? Mention
+        }
+    }
 
     var htmlDiv: [HTMLDiv] {
         return properties.compactMap { property in

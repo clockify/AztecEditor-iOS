@@ -4,6 +4,13 @@ import UIKit
 
 /// Implemented by a class taking care of handling attachments for the storage.
 ///
+///
+///
+
+protocol ChecklistAttachmentsDelegate: AnyObject {
+    func configureChecklists()
+}
+
 protocol TextStorageAttachmentsDelegate: AnyObject {
 
     /// Provides images for attachments that are part of the storage
@@ -93,7 +100,7 @@ open class TextStorage: NSTextStorage {
     
     // MARK: - Storage
 
-    fileprivate var textStore = NSMutableAttributedString(string: "", attributes: nil)
+    open var textStore = NSMutableAttributedString(string: "", attributes: nil)
     fileprivate var textStoreString = ""
 
     // MARK: - Delegates
@@ -109,6 +116,8 @@ open class TextStorage: NSTextStorage {
 
 
     // MARK: - Calculated Properties
+    
+    weak var checkListDelegate: ChecklistAttachmentsDelegate?
 
     override open var string: String {
         return textStoreString
@@ -436,7 +445,8 @@ open class TextStorage: NSTextStorage {
         enumerateRenderableAttachments(in: textStore, block: { [weak self] (attachment, _, _) in
             attachment.delegate = self
         })
-                
+        
+        checkListDelegate?.configureChecklists()
     }
 }
 
