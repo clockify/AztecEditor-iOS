@@ -38,4 +38,8 @@ extension AttributeType {
     public static let target = AttributeType("target")
     public static let reversed = AttributeType("reversed")
     public static let start = AttributeType("start")
+    public static let dataType = AttributeType("data-type")
+    public static let dataDenotationChar = AttributeType("data-denotation-char")
+    public static let dataID = AttributeType("data-id")
+    public static let dataValue = AttributeType("data-value")
 }

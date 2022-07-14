@@ -1,6 +1,6 @@
 //
 //  Mention.swift
-//  
+//
 //
 //  Created by Stefan Petkovic on 13.7.22..
 //
@@ -8,38 +8,56 @@
 import Foundation
 
 public struct MentionObject: Equatable {
-    let dataDenotationChar: String!
-    let dataId: Int!
-    let dataValue: String!
+    
+    public enum DataType: String {
+        case user = "user"
+        case team = "team"
+        case task = "item"
+    }
+    
+    let dataDenotationChar: String
+    let dataId: Int
+    let dataValue: String
     let dataType: String
+    
+    var mentionType: DataType {
+        return DataType(rawValue: dataType)!
+    }
     
     public static func ==(lhs: MentionObject, rhs: MentionObject) -> Bool {
         return lhs.dataDenotationChar == rhs.dataDenotationChar && lhs.dataId == rhs.dataId && lhs.dataValue == rhs.dataValue && rhs.dataType == lhs.dataType
     }
 }
 
-class Mention: ParagraphProperty {
+class Mention: ParagraphProperty, NSCopying {
+    func copy(with zone: NSZone? = nil) -> Any {
+        return Mention(mentionUser: nil, mentionTask: nil, with: self.representation)
+    }
+    
 
     let mentionUser: MentionObject?
     let mentionTask: MentionObject?
-    let start: Int!
+    let identifier: UUID = UUID()
 
     init(mentionUser: MentionObject?, mentionTask: MentionObject?, with representation: HTMLRepresentation? = nil) {
-        self.mentionUser = mentionUser
-        self.mentionTask = mentionTask
-        
         if let representation = representation, case let .element( html ) = representation.kind {
             
-            if let startAttribute = html.attribute(ofType: .start),
-                case let .string( value ) = startAttribute.value,
-                let start = Int(value)
-            {
-                self.start = start
+            if let dataType = html.attribute(ofType: .dataType)?.value.toString(), let dataID = Int(html.attribute(ofType: .dataID)!.value.toString()!), let dataValue = html.attribute(ofType: .dataValue)?.value.toString(), let mentionChar = html.attribute(ofType: .dataDenotationChar)?.value.toString() {
+                let mentionObject = MentionObject(dataDenotationChar: mentionChar, dataId: dataID, dataValue: dataValue, dataType: dataType)
+                if mentionObject.mentionType == .task {
+                    self.mentionTask = mentionObject
+                    self.mentionUser = nil
+                }else {
+                    self.mentionUser = mentionObject
+                    self.mentionTask = nil
+                }
             }else {
-                self.start = nil
+                self.mentionTask = nil
+                self.mentionUser = nil
             }
         }else {
-            self.start = nil
+            self.mentionTask = nil
+            self.mentionUser = nil
         }
         super.init(with: representation)
     }
@@ -47,26 +65,6 @@ class Mention: ParagraphProperty {
     public required init?(coder aDecoder: NSCoder) {
         self.mentionTask = nil
         self.mentionUser = nil
-        self.start = nil
-//        if aDecoder.containsValue(forKey: String(describing: Style.self)),
-//            let decodedStyle = Style(rawValue:aDecoder.decodeInteger(forKey: String(describing: Style.self))) {
-//            style = decodedStyle
-//        } else {
-//            style = .ordered
-//        }
-//        if aDecoder.containsValue(forKey: AttributeType.start.rawValue) {
-//            let decodedStart = aDecoder.decodeInteger(forKey: AttributeType.start.rawValue)
-//            start = decodedStart
-//        } else {
-//            start = nil
-//        }
-//
-//        if aDecoder.containsValue(forKey: AttributeType.reversed.rawValue) {
-//            let decodedReversed = aDecoder.decodeBool(forKey: AttributeType.reversed.rawValue)
-//            reversed = decodedReversed
-//        } else {
-//            reversed = false
-//        }
 
         super.init(coder: aDecoder)
     }
@@ -74,10 +72,10 @@ class Mention: ParagraphProperty {
     public override func encode(with aCoder: NSCoder) {
         super.encode(with: aCoder)
         aCoder.encode(MentionObject.self, forKey: String(describing: MentionObject.self))
-        aCoder.encode(start, forKey: AttributeType.start.rawValue)
+        aCoder.encode(UUID.self, forKey: "identifier")
     }
 
     public static func ==(lhs: Mention, rhs: Mention) -> Bool {
-        return lhs.mentionUser == rhs.mentionUser && lhs.start == rhs.start && lhs.mentionTask == rhs.mentionTask
+        return lhs.mentionUser == rhs.mentionUser && lhs.mentionTask == rhs.mentionTask && lhs.identifier == rhs.identifier
     }
 }

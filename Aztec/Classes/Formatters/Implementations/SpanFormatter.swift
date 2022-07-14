@@ -25,6 +25,24 @@ open class SpanFormatter: AttributeFormatter {
     
     func apply(to attributes: [NSAttributedString.Key : Any], andStore representation: HTMLRepresentation?) -> [NSAttributedString.Key : Any] {
         var resultingAttributes = attributes
+        let newParagraphStyle = ParagraphStyle()
+        
+        if let paragraphStyle = attributes[.paragraphStyle] as? NSParagraphStyle {
+            newParagraphStyle.setParagraphStyle(paragraphStyle)
+        }
+        
+        let newMention = Mention(mentionUser: nil, mentionTask: nil, with: representation)
+        
+        if newMention.mentionUser != nil || newMention.mentionTask != nil {
+            if newParagraphStyle.mention.isEmpty {
+                resultingAttributes[.mentionTag] = newMention
+                newParagraphStyle.insertProperty(newMention, afterLastOfType: Mention.self)
+                resultingAttributes[.paragraphStyle] = newParagraphStyle
+            } else {
+                newParagraphStyle.replaceProperty(ofType: Mention.self, with: newMention)
+            }
+        }
+        
         resultingAttributes[.foregroundColor] = self.foregroundColor
         resultingAttributes[.backgroundColor] = self.backgroundColor
         return resultingAttributes
@@ -36,5 +54,5 @@ open class SpanFormatter: AttributeFormatter {
     
     func applicationRange(for range: NSRange, in text: NSAttributedString) -> NSRange {
         NSRange(location: 0, length: 0)
-    } 
+    }
 }

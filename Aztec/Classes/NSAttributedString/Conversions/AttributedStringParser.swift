@@ -857,6 +857,10 @@ private extension AttributedStringParser {
         if let element = processLinkStyle(in: attributes) {
             nodes.append(element)
         }
+        
+        if let element = processMentionStyle(in: attributes) {
+            nodes.append(element)
+        }
 
         if let element = processStrikethruStyle(in: attributes) {
             nodes.append(element)
@@ -867,6 +871,22 @@ private extension AttributedStringParser {
         }
 
         return nodes
+    }
+    
+    /// Extracts all of the Span Mention Elements contained within a collection of Attributes.
+    ///
+    private func processMentionStyle(in attributes: [NSAttributedString.Key: Any]) -> ElementNode? {
+
+        let element: ElementNode
+
+        if let representation = (attributes[.mentionTag] as? Mention)?.representation as? HTMLRepresentation,
+            case let .element(representationElement) = representation.kind {
+
+            element = representationElement.toElementNode()
+            return element
+        }
+        
+        return nil
     }
 
     /// Extracts all of the Link Elements contained within a collection of Attributes.

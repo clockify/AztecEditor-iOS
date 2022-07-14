@@ -156,4 +156,17 @@ extension NSAttributedString
             return properties.contains { $0 === figure }
         }
     }
+    
+    public func rangesForMentions() -> [NSRange] {
+        let range = NSRange(location: 0, length: length)
+        var attachmentRanges = [NSRange]()
+        enumerateAttribute(.mentionTag, in: range, options: []) { (value, effectiveRange, nil) in
+            if let foundMention = value as? Mention {
+                attachmentRanges.append(effectiveRange)
+            }
+        }
+
+        return attachmentRanges
+    }
+
 }

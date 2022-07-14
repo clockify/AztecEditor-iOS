@@ -754,7 +754,18 @@ open class TextView: UITextView {
         if deletionRange.length == 0 {
             deletionRange.location = max(selectedRange.location - 1, 0)
             deletionRange.length = 1
+            deletionRange = ensureRemovalOfMentions(at: deletionRange)
+            selectedRange = deletionRange
         }
+        
+        let newDeletingRange = ensureRemovalOfMentions(at: deletionRange)
+        
+        if deletionRange != newDeletingRange {
+            deletionRange = newDeletingRange
+            selectedRange = newDeletingRange
+        }
+        
+
         if storage.length > 0 {
             deletedString = storage.attributedSubstring(from: deletionRange) 
         }
@@ -799,11 +810,6 @@ open class TextView: UITextView {
         caretRect.origin.y = usedLineFragment.origin.y + textContainerInset.top
         caretRect.size.height = usedLineFragment.size.height
         
-//        if !caretRect.isEmpty {
-//            if !isCheckViewConfigureInProgress {
-//                configureCheckviews()
-//            }
-//        }
         return caretRect
     }
 
@@ -863,7 +869,6 @@ open class TextView: UITextView {
                     switch list.representation!.kind {
                     case .element(let element):
                         element.attributes.set(String(updateValue), for: "data-checked")
-                        print("asd")
                         default: break
                     }
                 }
@@ -1974,6 +1979,24 @@ private extension TextView {
 
         removeParagraphPropertiesFromTypingAttributes()
         removeParagraphProperties(from: range)
+    }
+    
+    func ensureRemovalOfMentions(at range: NSRange) -> NSRange {
+        let mentionsRanges = storage.textStore.rangesForMentions()
+        var newRangeStart = range.location
+        var newRangeEnd = range.location + range.length
+
+        mentionsRanges.forEach { singleRange in
+            if range.location <= singleRange.location + singleRange.length && range.location >= singleRange.location {
+                newRangeStart = singleRange.location
+            }
+            
+            if range.location + range.length > singleRange.location && range.location + range.length < singleRange.location + singleRange.length {
+                newRangeEnd = singleRange.location + singleRange.length
+            }
+        }
+        
+        return NSRange(location: newRangeStart, length: newRangeEnd - newRangeStart)
     }
 
     /// When deleting the newline between lines 1 and 2 in the following example:

@@ -8,7 +8,7 @@ open class HTMLStorage: NSTextStorage {
 
     /// Internal Storage
     ///
-    private var textStore = NSMutableAttributedString(string: "", attributes: nil)
+    open var textStore = NSMutableAttributedString(string: "", attributes: nil)
     fileprivate var textStoreString = ""
 
     /// Document's Font

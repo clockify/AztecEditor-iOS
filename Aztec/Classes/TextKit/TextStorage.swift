@@ -466,6 +466,10 @@ private extension TextStorage {
     func ensureMatchingFontAndParagraphHeaderStyles(beforeApplying attrs: [NSAttributedString.Key: Any], at range: NSRange) -> [NSAttributedString.Key: Any] {
         let newStyle = attrs[.paragraphStyle] as? ParagraphStyle
         let oldStyle = textStore.attribute(.paragraphStyle, at: range.location, effectiveRange: nil) as? ParagraphStyle
+        
+        if !(oldStyle?.mention.isEmpty ?? true) {
+            newStyle?.properties.append((oldStyle?.properties.first(where: {$0.isKind(of: Mention.self)}))!)
+        }
 
         let newLevel = newStyle?.headers.last?.level ?? .none
         let oldLevel = oldStyle?.headers.last?.level ?? .none
