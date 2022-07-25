@@ -71,8 +71,6 @@ class Mention: ParagraphProperty, NSCopying {
 
     public override func encode(with aCoder: NSCoder) {
         super.encode(with: aCoder)
-        aCoder.encode(MentionObject.self, forKey: String(describing: MentionObject.self))
-        aCoder.encode(UUID.self, forKey: "identifier")
     }
 
     public static func ==(lhs: Mention, rhs: Mention) -> Bool {
