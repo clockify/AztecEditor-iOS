@@ -749,6 +749,8 @@ open class TextView: UITextView {
     }
 
     open override func deleteBackward() {
+        if selectedRange == NSRange(location: 0, length: 0) { return }
+        
         var deletionRange = selectedRange
         var deletedString = NSAttributedString()
         if deletionRange.length == 0 {
