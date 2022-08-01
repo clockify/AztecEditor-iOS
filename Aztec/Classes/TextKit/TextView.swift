@@ -2057,7 +2057,6 @@ private extension TextView {
         return NSRange(location: newRangeStart, length: newRangeEnd - newRangeStart)
     }
 
-
     /// When deleting the newline between lines 1 and 2 in the following example:
     ///     Line 1: <empty>
     ///     Line 2: <empty> (with list style)

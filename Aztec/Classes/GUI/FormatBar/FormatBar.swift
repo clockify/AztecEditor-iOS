@@ -951,7 +951,7 @@ extension FormatBar {
         static let textButtonWidth: CGFloat = 135
         static let buttonBackgroundColor: UIColor = UIColor(hex: "272637")
         
-        static let textButtonImage: UIImage = UIImage(named: "chevron")!
+        static let textButtonImage: UIImage = UIImage(named: "chevron") ?? UIImage()
         
         static let textButtonNormalLeading: CGFloat = 10
         static let textButtonExtendedLeading: CGFloat = 30

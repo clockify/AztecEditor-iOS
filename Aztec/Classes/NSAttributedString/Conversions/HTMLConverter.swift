@@ -111,7 +111,6 @@ public class HTMLConverter {
         let rootNode = attributedStringToTree.parse(attributedString)
         
         pluginManager.process(outputHTMLTree: rootNode)
-        
         makeListsStandAloneNodes(rootNode: rootNode)
         makeSpanChildrenStandAlone(rootNode: rootNode)
         let html = treeToHTML.serialize(rootNode, prettify: prettify)

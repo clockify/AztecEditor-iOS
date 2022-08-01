@@ -136,6 +136,7 @@ class AttributedStringSerializer {
         
         let converter = self.converter(for: element)
         var convertedString: NSAttributedString!
+        
         if element.name == "span" && element.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
             element.children.removeAll(where: {$0.name == "text" })
             let classValue = element.attribute(named: "class")?.value.toString()
@@ -155,7 +156,7 @@ class AttributedStringSerializer {
             }
             convertedString = converter.convert(element, inheriting: attributes, contentSerializer: contentSerializer)
         }
-        
+
         content.append(convertedString)
 
         return content
