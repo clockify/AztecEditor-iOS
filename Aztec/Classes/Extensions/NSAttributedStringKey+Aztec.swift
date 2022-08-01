@@ -6,6 +6,10 @@ public extension NSAttributedString.Key {
     ///
     static let mentionTag: NSAttributedString.Key = NSAttributedString.Key("mentionTag")
     
+    /// Key used to store Mention tags Metadata..
+    ///
+    static let emojiTag: NSAttributedString.Key = NSAttributedString.Key("emojiTag")
+
     /// Key used to store Header tags Metadata, by our HeaderFormatter.
     ///
     static let headingRepresentation: NSAttributedString.Key = NSAttributedString.Key("headingRepresentation")

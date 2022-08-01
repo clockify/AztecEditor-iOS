@@ -33,10 +33,10 @@ class Mention: ParagraphProperty, NSCopying {
     func copy(with zone: NSZone? = nil) -> Any {
         return Mention(mentionUser: nil, mentionTask: nil, with: self.representation)
     }
-    
 
     let mentionUser: MentionObject?
     let mentionTask: MentionObject?
+    var isEmoji: Bool = false
     let identifier: UUID = UUID()
 
     init(mentionUser: MentionObject?, mentionTask: MentionObject?, with representation: HTMLRepresentation? = nil) {
@@ -75,5 +75,56 @@ class Mention: ParagraphProperty, NSCopying {
 
     public static func ==(lhs: Mention, rhs: Mention) -> Bool {
         return lhs.mentionUser == rhs.mentionUser && lhs.mentionTask == rhs.mentionTask && lhs.identifier == rhs.identifier
+    }
+}
+
+public struct EmojiObject: Equatable {
+    
+    let classValue: String
+    let dataNameValue: String
+    let contenteditableValue: String
+    let childClassValue: String
+    let text: String
+    
+    public static func ==(lhs: EmojiObject, rhs: EmojiObject) -> Bool {
+        return lhs.classValue == rhs.classValue && lhs.dataNameValue == rhs.dataNameValue && lhs.contenteditableValue == rhs.contenteditableValue && rhs.childClassValue == lhs.childClassValue && rhs.text == lhs.text
+    }
+    
+    public func getAttributes() -> [Attribute] {
+        let classAttribute = Attribute(name: "class", value: Attribute.Value(withString: classValue))
+        let dataNameAttribute = Attribute(name: "data-name", value: Attribute.Value(withString: dataNameValue))
+        let contenteditableAttribute = Attribute(name: "contenteditable", value: Attribute.Value(withString: contenteditableValue))
+        let childClassAttribute = Attribute(name: "childClass", value: Attribute.Value(withString: childClassValue))
+        let textAttribute = Attribute(name: "text", value: Attribute.Value(withString: text))
+
+        return [classAttribute, dataNameAttribute, contenteditableAttribute, childClassAttribute, textAttribute]
+    }
+}
+
+class EmojiParagraphPropery: ParagraphProperty, NSCopying {
+    func copy(with zone: NSZone? = nil) -> Any {
+        return EmojiObject(classValue: emojiObject.classValue , dataNameValue: emojiObject.dataNameValue, contenteditableValue: emojiObject.contenteditableValue, childClassValue: emojiObject.childClassValue, text: emojiObject.text)
+    }
+
+    let emojiObject: EmojiObject!
+    let identifier: UUID = UUID()
+
+    init(emojiObject: EmojiObject) {
+        self.emojiObject = emojiObject
+        super.init()
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        self.emojiObject = nil
+
+        super.init(coder: aDecoder)
+    }
+
+    public override func encode(with aCoder: NSCoder) {
+        super.encode(with: aCoder)
+    }
+
+    public static func ==(lhs: EmojiParagraphPropery, rhs: EmojiParagraphPropery) -> Bool {
+        return lhs.emojiObject == rhs.emojiObject
     }
 }

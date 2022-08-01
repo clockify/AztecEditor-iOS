@@ -135,7 +135,26 @@ class AttributedStringSerializer {
         let attributes = attributesConverter.convert(element.attributes, inheriting: attributes)
         
         let converter = self.converter(for: element)
-        let convertedString = converter.convert(element, inheriting: attributes, contentSerializer: contentSerializer)
+        var convertedString: NSAttributedString!
+        if element.name == "span" && element.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
+            element.children.removeAll(where: {$0.name == "text" })
+            let classValue = element.attribute(named: "class")?.value.toString()
+            let dataNameValue = element.attribute(named: "data-name")?.value.toString()
+            let contenteditableValue = (element.children.first as! ElementNode).attribute(named: "contenteditable")?.value.toString()
+            let childClassValue = ((element.children.first as! ElementNode).children.first as! ElementNode).attribute(named: "class")?.value.toString()
+            let text = (((element.children.first as! ElementNode).children.first as! ElementNode).children.first as! TextNode).rawText()
+            
+            let emojiObject = EmojiObject(classValue: classValue ?? "", dataNameValue: dataNameValue ?? "", contenteditableValue: contenteditableValue ?? "", childClassValue: childClassValue ?? "", text: text ?? "")
+            let formatter = SpanFormatter(with: emojiObject)
+
+            convertedString = NSAttributedString(string: text, attributes: formatter.applyEmoji(to: attributes))
+        }else {
+            if let spanNode = element.children[0] as? ElementNode, spanNode.isNodeType(.span), spanNode.attribute(ofType: .class)?.value.toString() == "mention" {
+                element.children.insert(TextNode(text: " "), at: 0)
+                element.children.insert(TextNode(text: " "), at: 2)
+            }
+            convertedString = converter.convert(element, inheriting: attributes, contentSerializer: contentSerializer)
+        }
         
         content.append(convertedString)
 

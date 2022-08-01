@@ -52,6 +52,12 @@ open class ParagraphStyle: NSMutableParagraphStyle, CustomReflectable {
             return property as? Mention
         }
     }
+    
+    var emoji: [EmojiObject] {
+        return properties.compactMap({ property in
+            return property as? EmojiObject
+        })
+    }
 
     var htmlDiv: [HTMLDiv] {
         return properties.compactMap { property in

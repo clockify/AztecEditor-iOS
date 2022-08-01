@@ -12,11 +12,16 @@ import UIKit
 open class SpanFormatter: AttributeFormatter {
     
     var user: [String: Any] = [:]
+    var emoji: EmojiParagraphPropery?
     var foregroundColor: UIColor = UIColor(hex: "F85383")
     var backgroundColor: UIColor = UIColor(hex: "78789A").withAlphaComponent(0.5)
     
     init(for user: [String: Any]) {
         self.user = user
+    }
+    
+    init(with emoji: EmojiObject) {
+        self.emoji = EmojiParagraphPropery(emojiObject: emoji)
     }
     
     func present(in attributes: [NSAttributedString.Key : Any]) -> Bool {
@@ -41,10 +46,31 @@ open class SpanFormatter: AttributeFormatter {
             } else {
                 newParagraphStyle.replaceProperty(ofType: Mention.self, with: newMention)
             }
+            resultingAttributes[.foregroundColor] = self.foregroundColor
+            resultingAttributes[.backgroundColor] = self.backgroundColor
         }
         
-        resultingAttributes[.foregroundColor] = self.foregroundColor
-        resultingAttributes[.backgroundColor] = self.backgroundColor
+        return resultingAttributes
+    }
+    
+    func applyEmoji(to attributes: [NSAttributedString.Key : Any]) -> [NSAttributedString.Key : Any] {
+        var resultingAttributes = attributes
+        let newParagraphStyle = ParagraphStyle()
+        
+        if let paragraphStyle = attributes[.paragraphStyle] as? NSParagraphStyle {
+            newParagraphStyle.setParagraphStyle(paragraphStyle)
+        }
+                
+        if newParagraphStyle.emoji.isEmpty {
+            resultingAttributes[.emojiTag] = emoji
+            newParagraphStyle.insertProperty(emoji!, afterLastOfType: EmojiParagraphPropery.self)
+            resultingAttributes[.paragraphStyle] = newParagraphStyle
+        }else {
+            newParagraphStyle.replaceProperty(ofType: EmojiParagraphPropery.self, with: emoji!)
+        }
+        var font = UIFont.systemFont(ofSize: 18)
+        resultingAttributes[.font] = font
+        
         return resultingAttributes
     }
     

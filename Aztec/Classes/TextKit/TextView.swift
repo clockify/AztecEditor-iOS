@@ -767,6 +767,12 @@ open class TextView: UITextView {
             selectedRange = newDeletingRange
         }
         
+        let emojiDeletionRange = ensureRemovalOfEmoji(at: deletionRange)
+        
+        if deletionRange != emojiDeletionRange {
+            deletionRange = emojiDeletionRange
+            selectedRange = emojiDeletionRange
+        }
 
         if storage.length > 0 {
             deletedString = storage.attributedSubstring(from: deletionRange) 
@@ -2000,6 +2006,25 @@ private extension TextView {
         
         return NSRange(location: newRangeStart, length: newRangeEnd - newRangeStart)
     }
+    
+    func ensureRemovalOfEmoji(at range: NSRange) -> NSRange {
+        let emojiRanges = storage.textStore.rangesForEmojis()
+        var newRangeStart = range.location
+        var newRangeEnd = range.location + range.length
+
+        emojiRanges.forEach { singleRange in
+            if range.location < singleRange.location + singleRange.length && range.location > singleRange.location {
+                newRangeStart = singleRange.location
+            }
+            
+            if range.location + range.length > singleRange.location && range.location + range.length < singleRange.location + singleRange.length {
+                newRangeEnd = singleRange.location + singleRange.length
+            }
+        }
+        
+        return NSRange(location: newRangeStart, length: newRangeEnd - newRangeStart)
+    }
+
 
     /// When deleting the newline between lines 1 and 2 in the following example:
     ///     Line 1: <empty>
