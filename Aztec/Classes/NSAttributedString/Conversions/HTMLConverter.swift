@@ -111,12 +111,25 @@ public class HTMLConverter {
         let rootNode = attributedStringToTree.parse(attributedString)
         
         pluginManager.process(outputHTMLTree: rootNode)
-        
+        makeListsStandAloneNodes(rootNode: rootNode)
         let html = treeToHTML.serialize(rootNode, prettify: prettify)
         
         return pluginManager.process(outputHTML: html)
     }
     
+    func makeListsStandAloneNodes(rootNode: RootNode ) {
+        for (index, node) in rootNode.children.enumerated() {
+            if let childNode = node as? ElementNode, childNode.hasChildren(), childNode.isNodeType(.p) {
+                for nastedChildNode in childNode.children{
+                    if let elementNode = nastedChildNode as? ElementNode {
+                        if elementNode.isNodeType(.ul) || elementNode.isNodeType(.ulChecked) || elementNode.isNodeType(.ol), childNode.children.count == 1 {
+                            rootNode.children[index] = elementNode
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 // MARK: - Helpers

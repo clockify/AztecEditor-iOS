@@ -168,5 +168,16 @@ extension NSAttributedString
 
         return attachmentRanges
     }
+    
+    public func rangesForEmojis() -> [NSRange] {
+        let range = NSRange(location: 0, length: length)
+        var attachmentRanges = [NSRange]()
+        enumerateAttribute(.emojiTag, in: range, options: []) { (value, effectiveRange, nil) in
+            if let foundMention = value as? EmojiParagraphPropery {
+                attachmentRanges.append(effectiveRange)
+            }
+        }
 
+        return attachmentRanges
+    }
 }

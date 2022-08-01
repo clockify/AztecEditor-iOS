@@ -21,7 +21,7 @@ open class UnderlineStringAttributeConverter: StringAttributeConverter {
         if let representation = attributes[NSAttributedString.Key.underlineHtmlRepresentation] as? HTMLRepresentation,
             case let .element(representationElement) = representation.kind {
             
-            elementNodes.append(representationElement.toElementNode())
+            elementNodes.append(ElementNode(type: .u, attributes: [], children: []))
         }
         
         if let underlineStyle = attributes[.underlineStyle] as? Int,

@@ -89,4 +89,11 @@ open class TextList: ParagraphProperty {
     public static func ==(lhs: TextList, rhs: TextList) -> Bool {
         return lhs.style == rhs.style && lhs.start == rhs.start && lhs.reversed == rhs.reversed
     }
+    
+    open override func isEqual(_ object: Any?) -> Bool {
+        if let compareObject = object as? TextList {
+            return self == compareObject
+        }
+        return false
+    }
 }

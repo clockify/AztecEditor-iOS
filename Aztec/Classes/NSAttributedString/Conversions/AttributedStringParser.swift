@@ -861,6 +861,10 @@ private extension AttributedStringParser {
         if let element = processMentionStyle(in: attributes) {
             nodes.append(element)
         }
+        
+        if let element = processEmojiStyle(in: attributes) {
+            nodes.append(element)
+        }
 
         if let element = processStrikethruStyle(in: attributes) {
             nodes.append(element)
@@ -883,6 +887,18 @@ private extension AttributedStringParser {
             case let .element(representationElement) = representation.kind {
 
             element = representationElement.toElementNode()
+            return element
+        }
+        
+        return nil
+    }
+    
+    private func processEmojiStyle(in attributes: [NSAttributedString.Key: Any]) -> ElementNode? {
+
+        let element: ElementNode
+
+        if let emojiObject = (attributes[.emojiTag] as? EmojiParagraphPropery)?.emojiObject {
+            element = ElementNode(name: "span", attributes: emojiObject.getAttributes(), children: [])
             return element
         }
         

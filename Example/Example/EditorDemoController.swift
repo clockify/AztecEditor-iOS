@@ -221,11 +221,13 @@ class EditorDemoController: UIViewController {
         super.viewDidAppear(animated)
         //Reanable scroll after setup is done
         editorView.isScrollEnabled = true
+        editorView.getHTML()
     }
 
 
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
+        editorView.getHTML()
 
         let nc = NotificationCenter.default
         nc.removeObserver(self, name: UIResponder.keyboardWillShowNotification, object: nil)

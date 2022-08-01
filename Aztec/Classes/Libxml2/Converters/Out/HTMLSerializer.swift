@@ -87,6 +87,11 @@ private extension HTMLSerializer {
     /// Serializes an `ElementNode` into its HTML representation
     ///
     private func serialize(_ elementNode: ElementNode, prettify: Bool, level: Int) -> String {
+        
+        if elementNode.name == "span" && elementNode.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
+            return "<span class=\"\(elementNode.attribute(named: "class")!.value.toString()!)\" data-name=\"\(elementNode.attribute(named: "data-name")!.value.toString()!)\">﻿<span contenteditable=\"\(elementNode.attribute(named: "contenteditable")!.value.toString()!)\"><span class=\"\(elementNode.attribute(named: "childClass")!.value.toString()!)\">\(elementNode.attribute(named: "text")!.value.toString()!)</span></span>﻿</span>"
+        }
+
         let tag = converter(for: elementNode).convert(elementNode)
         
         let openingTagPrefix = self.openingTagPrefix(for: elementNode, prettify: prettify, level: level)
