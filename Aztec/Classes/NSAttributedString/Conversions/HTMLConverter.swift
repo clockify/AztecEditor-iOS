@@ -113,9 +113,22 @@ public class HTMLConverter {
         pluginManager.process(outputHTMLTree: rootNode)
         
         makeListsStandAloneNodes(rootNode: rootNode)
+        makeSpanChildrenStandAlone(rootNode: rootNode)
         let html = treeToHTML.serialize(rootNode, prettify: prettify)
         
         return pluginManager.process(outputHTML: html)
+    }
+    
+    func makeSpanChildrenStandAlone(rootNode: ElementNode) {
+        for (index, node) in rootNode.children.enumerated() {
+            if let spanNode = node as? ElementNode, spanNode.hasChildren(), spanNode.isNodeType(.span) {
+                rootNode.children[index] = spanNode.children.first!
+            }else {
+                if let elementNode = node as? ElementNode {
+                    makeSpanChildrenStandAlone(rootNode: elementNode)
+                }
+            }
+        }
     }
     
     func makeListsStandAloneNodes(rootNode: RootNode ) {

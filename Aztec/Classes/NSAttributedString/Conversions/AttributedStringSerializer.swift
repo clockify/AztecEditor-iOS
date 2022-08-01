@@ -149,7 +149,7 @@ class AttributedStringSerializer {
 
             convertedString = NSAttributedString(string: text, attributes: formatter.applyEmoji(to: attributes))
         }else {
-            if let spanNode = element.children[0] as? ElementNode, spanNode.isNodeType(.span), spanNode.attribute(ofType: .class)?.value.toString() == "mention" {
+            if let spanNode = element.children.first as? ElementNode, spanNode.isNodeType(.span), spanNode.attribute(ofType: .class)?.value.toString() == "mention" {
                 element.children.insert(TextNode(text: " "), at: 0)
                 element.children.insert(TextNode(text: " "), at: 2)
             }

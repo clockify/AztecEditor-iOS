@@ -24,17 +24,32 @@ class TextListFormatter: ParagraphAttributeFormatter {
         self.placeholderAttributes = placeholderAttributes
         self.increaseDepth = increaseDepth
     }
+    
+    class func getCheckedRepresentation() -> HTMLRepresentation {
+        let elementNode = ElementNode(type: .ulChecked)
+        elementNode.updateAttribute(ofType: .class, value: Attribute.Value(withString:"task-list"))
+        elementNode.updateAttribute(named: "data-checked", value: Attribute.Value(withString:"false"))
+        let elementRepresentation = HTMLElementRepresentation(elementNode)
+        let representation = HTMLRepresentation(for: .element(elementRepresentation))
+        return representation
+    }
 
 
     // MARK: - Overwriten Methods
 
     func apply(to attributes: [NSAttributedString.Key: Any], andStore representation: HTMLRepresentation?) -> [NSAttributedString.Key: Any] {
         let newParagraphStyle = ParagraphStyle()
+        var newRepresentation = representation
+        
+        if newRepresentation == nil && self.listStyle == .checked {
+            newRepresentation = TextListFormatter.getCheckedRepresentation()
+        }
+        
         if let paragraphStyle = attributes[.paragraphStyle] as? NSParagraphStyle {
             newParagraphStyle.setParagraphStyle(paragraphStyle)
         }
 
-        let newList = TextList(style: self.listStyle, with: representation)
+        let newList = TextList(style: self.listStyle, with: newRepresentation)
         
         if newParagraphStyle.lists.isEmpty || increaseDepth {
             newParagraphStyle.insertProperty(newList, afterLastOfType: HTMLLi.self)

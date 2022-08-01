@@ -736,16 +736,17 @@ open class TextView: UITextView {
         ensureRemovalOfLinkTypingAttribute(at: selectedRange)
 
         super.insertText(text)
-        
-        if text == "\n" && typingAttributes.paragraphStyle().lists.first?.style == .checked {
-            configureCheckviews()
-        }
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
 
         restoreDefaultFontIfNeeded()
 
         ensureCursorRedraw(afterEditing: text)
+        
+        if text == "\n" && typingAttributes.paragraphStyle().lists.first?.style == .checked {
+            toggleCheckedList(range: selectedRange)
+            toggleCheckedList(range: selectedRange)
+        }
     }
 
     open override func deleteBackward() {
@@ -778,6 +779,12 @@ open class TextView: UITextView {
             deletedString = storage.attributedSubstring(from: deletionRange) 
         }
         
+        if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
+            selectedRange = emojiCheckRange
+            deletionRange = emojiCheckRange
+            deletedString = storage.attributedSubstring(from: emojiCheckRange)
+        }
+        
         ensureRemovalOfParagraphStylesBeforeRemovingCharacter(at: selectedRange)
         super.deleteBackward()
 
@@ -789,6 +796,30 @@ open class TextView: UITextView {
             configureCheckviews()
         }
         notifyTextViewDidChange()
+    }
+    
+    func checkForPossibleEmoji(in range: NSRange) -> NSRange? {
+        
+        for index in 0...3 {
+            let emojiRangeCheck = NSRange(location: range.location - index, length: range.length + index)
+            let possibleEmoji = storage.attributedSubstring(from: emojiRangeCheck)
+            
+            if !possibleEmoji.string.unicodeScalars.isEmpty {
+                if CharacterSet.alphanumerics.contains(possibleEmoji.string.unicodeScalars.first!) {
+                    return nil
+                    break
+                }
+                
+                if index == 0 {
+                    return NSRange(location: emojiRangeCheck.location - 1, length: emojiRangeCheck.length + 1)
+                    break
+                }
+                return emojiRangeCheck
+                break
+            }
+        }
+        
+        return nil
     }
 
     // MARK: - UIView Overrides
@@ -1227,6 +1258,7 @@ open class TextView: UITextView {
             toggle(formatter: liFormatter, atRange: range)
         }
         forceRedrawCursorAfterDelay()
+        configureCheckviews()
     }
 
 
