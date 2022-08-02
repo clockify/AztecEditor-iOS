@@ -79,9 +79,10 @@ public class HTMLConverter {
                 if spanNode.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
                     let newSpanNode = ElementNode(type: .span)
                     newSpanNode.attributes.append(contentsOf: spanNode.attributes)
-                    newSpanNode.attributes.append(contentsOf: (spanNode.children[1] as! ElementNode).attributes)
-                    newSpanNode.attributes.append(Attribute(name: "childClass", value: Attribute.Value(withString: (((spanNode.children[1] as! ElementNode).children[0] as! ElementNode).attribute(ofType: .class)?.value.toString())!)))
-                    let child = ((spanNode.children[1] as! ElementNode).children[0] as! ElementNode).children.first as! TextNode
+                    let firstChild = spanNode.children.count > 1 ? spanNode.children[1] : spanNode.children[0]
+                    newSpanNode.attributes.append(contentsOf: (firstChild as! ElementNode).attributes)
+                    newSpanNode.attributes.append(Attribute(name: "childClass", value: Attribute.Value(withString: (((firstChild as! ElementNode).children[0] as! ElementNode).attribute(ofType: .class)?.value.toString())!)))
+                    let child = ((firstChild as! ElementNode).children[0] as! ElementNode).children.first as! TextNode
                     newSpanNode.children.append(child)
                     rootNode.children[index] = newSpanNode
                 }
@@ -134,6 +135,7 @@ public class HTMLConverter {
         pluginManager.process(outputHTMLTree: rootNode)
         makeListsStandAloneNodes(rootNode: rootNode)
         makeBlockquotesStandAloneNodes(rootNode: rootNode)
+        removeDuplicateEmojis(rootNode: rootNode)
         let html = treeToHTML.serialize(rootNode, prettify: prettify)
         
         return pluginManager.process(outputHTML: html)
@@ -155,6 +157,21 @@ public class HTMLConverter {
             }
         }
     }
+    
+    func removeDuplicateEmojis(rootNode: ElementNode ) {
+        for (index, node) in rootNode.children.enumerated() {
+            if let childNode = node as? ElementNode, childNode.hasChildren(), childNode.isNodeType(.span), childNode.attribute(ofType: .class)?.value.toString() == "ql-emojiblot" {
+                if let textNode = childNode.children.first(where: {$0 is TextNode}), textNode.rawText() != childNode.attribute(named: "text")!.value.toString() {
+                    rootNode.children[index] = textNode
+                }
+            }else {
+                if let elementNode = node as? ElementNode{
+                    removeDuplicateEmojis(rootNode: elementNode)
+                }
+            }
+        }
+    }
+
         
     func makeBlockquotesStandAloneNodes(rootNode: RootNode ) {
         for (index, node) in rootNode.children.enumerated() {

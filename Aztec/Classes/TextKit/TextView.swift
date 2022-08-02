@@ -801,10 +801,12 @@ open class TextView: UITextView {
         
         for index in 0...3 {
             let emojiRangeCheck = NSRange(location: range.location - index, length: range.length + index)
+            if emojiRangeCheck.location < 0 || emojiRangeCheck.length > storage.textStore.length { return nil}
             let possibleEmoji = storage.attributedSubstring(from: emojiRangeCheck)
             
             if !possibleEmoji.string.unicodeScalars.isEmpty {
-                if !possibleEmoji.string.unicodeScalars.contains(where: {$0.properties.isEmoji}) {
+                if possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isAlphabetic }) { return nil}
+                if !possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isEmoji }) {
                     continue
                 }
                 
