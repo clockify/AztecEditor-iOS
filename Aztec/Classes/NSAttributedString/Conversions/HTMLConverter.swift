@@ -133,6 +133,7 @@ public class HTMLConverter {
         
         pluginManager.process(outputHTMLTree: rootNode)
         makeListsStandAloneNodes(rootNode: rootNode)
+        makeBlockquotesStandAloneNodes(rootNode: rootNode)
         let html = treeToHTML.serialize(rootNode, prettify: prettify)
         
         return pluginManager.process(outputHTML: html)
@@ -141,10 +142,30 @@ public class HTMLConverter {
     func makeListsStandAloneNodes(rootNode: RootNode ) {
         for (index, node) in rootNode.children.enumerated() {
             if let childNode = node as? ElementNode, childNode.hasChildren(), childNode.isNodeType(.p) {
-                for nastedChildNode in childNode.children{
+                for (nastedIndex, nastedChildNode) in childNode.children.enumerated() {
                     if let elementNode = nastedChildNode as? ElementNode {
-                        if elementNode.isNodeType(.ul) || elementNode.isNodeType(.ulChecked) || elementNode.isNodeType(.ol), childNode.children.count == 1 {
-                            rootNode.children[index] = elementNode
+                        if elementNode.isNodeType(.blockquote) {
+                            rootNode.children.insert(elementNode, at: index + 1)
+                            if childNode.children.isEmpty {
+                                rootNode.children.remove(at: index)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+        
+    func makeBlockquotesStandAloneNodes(rootNode: RootNode ) {
+        for (index, node) in rootNode.children.enumerated() {
+            if let childNode = node as? ElementNode, childNode.hasChildren(), childNode.isNodeType(.p) {
+                for (nastedIndex, nastedChildNode) in childNode.children.enumerated() {
+                    if let elementNode = nastedChildNode as? ElementNode {
+                        if elementNode.isNodeType(.ul) || elementNode.isNodeType(.ulChecked) || elementNode.isNodeType(.ol) {
+                            rootNode.children.insert(elementNode, at: index + 1)
+                            if childNode.children.isEmpty {
+                                rootNode.children.remove(at: index)
+                            }
                         }
                     }
                 }

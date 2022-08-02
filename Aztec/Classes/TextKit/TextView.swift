@@ -769,20 +769,19 @@ open class TextView: UITextView {
         }
         
         let emojiDeletionRange = ensureRemovalOfEmoji(at: deletionRange)
-        
+
         if deletionRange != emojiDeletionRange {
             deletionRange = emojiDeletionRange
             selectedRange = emojiDeletionRange
+        }else {
+            if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
+                selectedRange = emojiCheckRange
+                deletionRange = emojiCheckRange
+            }
         }
 
         if storage.length > 0 {
             deletedString = storage.attributedSubstring(from: deletionRange)
-        }
-        
-        if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
-            selectedRange = emojiCheckRange
-            deletionRange = emojiCheckRange
-            deletedString = storage.attributedSubstring(from: emojiCheckRange)
         }
         
         ensureRemovalOfParagraphStylesBeforeRemovingCharacter(at: selectedRange)
@@ -805,9 +804,8 @@ open class TextView: UITextView {
             let possibleEmoji = storage.attributedSubstring(from: emojiRangeCheck)
             
             if !possibleEmoji.string.unicodeScalars.isEmpty {
-                if CharacterSet.alphanumerics.contains(possibleEmoji.string.unicodeScalars.first!) {
-                    return nil
-                    break
+                if !possibleEmoji.string.unicodeScalars.contains(where: {$0.properties.isEmoji}) {
+                    continue
                 }
                 
                 
