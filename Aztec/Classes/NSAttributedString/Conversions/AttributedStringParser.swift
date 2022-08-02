@@ -912,7 +912,7 @@ private extension AttributedStringParser {
 
         let element: ElementNode
 
-        if let emojiObject = (attributes[.emojiTag] as? EmojiParagraphPropery)?.emojiObject {
+        if let emojiObject = (attributes[.emojiTag] as? EmojiObject) {
             element = ElementNode(name: "span", attributes: emojiObject.getAttributes(), children: [])
             return element
         }
