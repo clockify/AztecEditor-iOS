@@ -1230,6 +1230,9 @@ open class TextView: UITextView {
     open func toggleOrderedList(range: NSRange) {
         ensureInsertionOfEndOfLineForEmptyParagraphAtEndOfFile(forApplicationRange: range)
 
+        let fontFormatter = HeaderFormatter(headerLevel: .none)
+        toggle(formatter: fontFormatter, atRange: range)
+        
         let formatter = TextListFormatter(style: .ordered, placeholderAttributes: typingAttributes)
         toggle(formatter: formatter, atRange: range)
 
@@ -1247,6 +1250,9 @@ open class TextView: UITextView {
     open func toggleCheckedList(range: NSRange) {
         ensureInsertionOfEndOfLineForEmptyParagraphAtEndOfFile(forApplicationRange: range)
 
+        let fontFormatter = HeaderFormatter(headerLevel: .none)
+        toggle(formatter: fontFormatter, atRange: range)
+        
         let formatter = TextListFormatter(style: .checked, placeholderAttributes: typingAttributes)
         toggle(formatter: formatter, atRange: range)
 
