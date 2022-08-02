@@ -132,30 +132,28 @@ class AttributedStringSerializer {
     fileprivate func serialize(_ element: ElementNode, inheriting attributes: [NSAttributedString.Key: Any]) -> NSAttributedString {
 
         let content = NSMutableAttributedString()
-        let attributes = attributesConverter.convert(element.attributes, inheriting: attributes)
+        var attributes = attributesConverter.convert(element.attributes, inheriting: attributes)
         
         let converter = self.converter(for: element)
         var convertedString: NSAttributedString!
         
         if element.name == "span" && element.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
-            element.children.removeAll(where: {$0.name == "text" })
+//            element.children.removeAll(where: {$0.name == "text" })
             let classValue = element.attribute(named: "class")?.value.toString()
             let dataNameValue = element.attribute(named: "data-name")?.value.toString()
-            let contenteditableValue = (element.children.first as! ElementNode).attribute(named: "contenteditable")?.value.toString()
-            let childClassValue = ((element.children.first as! ElementNode).children.first as! ElementNode).attribute(named: "class")?.value.toString()
-            let text = (((element.children.first as! ElementNode).children.first as! ElementNode).children.first as! TextNode).rawText()
-            
-            let emojiObject = EmojiObject(classValue: classValue ?? "", dataNameValue: dataNameValue ?? "", contenteditableValue: contenteditableValue ?? "", childClassValue: childClassValue ?? "", text: text ?? "")
-            let formatter = SpanFormatter(with: emojiObject)
+            let contenteditableValue = element.attribute(named: "contenteditable")?.value.toString()
+            let childClassValue = element.attribute(named: "childClass")?.value.toString()
+            let text = element.children.first?.rawText()
 
-            convertedString = NSAttributedString(string: text, attributes: formatter.applyEmoji(to: attributes))
-        }else {
+            let emojiObject = EmojiObject(classValue: classValue ?? "", dataNameValue: dataNameValue ?? "", contenteditableValue: contenteditableValue ?? "", childClassValue: childClassValue ?? "", text: text ?? "")
+            attributes[.emojiTag] = emojiObject
+        }
             if let spanNode = element.children.first as? ElementNode, spanNode.isNodeType(.span), spanNode.attribute(ofType: .class)?.value.toString() == "mention" {
                 element.children.insert(TextNode(text: " "), at: 0)
                 element.children.insert(TextNode(text: " "), at: 2)
             }
             convertedString = converter.convert(element, inheriting: attributes, contentSerializer: contentSerializer)
-        }
+//        }
 
         content.append(convertedString)
 

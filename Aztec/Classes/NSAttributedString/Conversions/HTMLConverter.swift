@@ -63,6 +63,7 @@ public class HTMLConverter {
         pluginManager.process(htmlTree: rootNode)
         
         let defaultAttributes = defaultAttributes ?? [:]
+        replaceEmojiElement(rootNode: rootNode)
         var attributedString = treeToAttributedString.serialize(rootNode, defaultAttributes: defaultAttributes)
 
         if let characterToUse = characterToReplaceLastEmptyLine {
@@ -71,7 +72,27 @@ public class HTMLConverter {
         
         return attributedString
     }
-
+    
+    func replaceEmojiElement(rootNode: ElementNode) {
+        for (index, node) in rootNode.children.enumerated() {
+            if let spanNode = node as? ElementNode, spanNode.hasChildren(), spanNode.isNodeType(.span) {
+                if spanNode.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
+                    let newSpanNode = ElementNode(type: .span)
+                    newSpanNode.attributes.append(contentsOf: spanNode.attributes)
+                    newSpanNode.attributes.append(contentsOf: (spanNode.children[1] as! ElementNode).attributes)
+                    newSpanNode.attributes.append(Attribute(name: "childClass", value: Attribute.Value(withString: (((spanNode.children[1] as! ElementNode).children[0] as! ElementNode).attribute(ofType: .class)?.value.toString())!)))
+                    let child = ((spanNode.children[1] as! ElementNode).children[0] as! ElementNode).children.first as! TextNode
+                    newSpanNode.children.append(child)
+                    rootNode.children[index] = newSpanNode
+                }
+            }else {
+                if let elementNode = node as? ElementNode {
+                    replaceEmojiElement(rootNode: elementNode)
+                }
+            }
+        }
+    }
+ 
     func replaceLastEmptyLine(in attributedString: NSAttributedString, with replacement: Character) -> NSAttributedString {
         var result = attributedString
         let string = attributedString.string

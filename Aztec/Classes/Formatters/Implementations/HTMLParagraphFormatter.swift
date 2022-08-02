@@ -54,6 +54,9 @@ public class HTMLParagraphFormatter: ParagraphAttributeFormatter {
         guard let style = attributes[.paragraphStyle] as? ParagraphStyle else {
             return false
         }
+        
+        if !style.headers.isEmpty { return false }
+        
         return !style.htmlParagraph.isEmpty
     }
 }

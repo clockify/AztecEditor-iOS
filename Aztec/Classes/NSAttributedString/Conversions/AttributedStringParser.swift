@@ -45,7 +45,7 @@ class AttributedStringParser {
     
     private struct ParagraphPropertyConversion {
         let property: ParagraphProperty
-        let elementNode: ElementNode
+        var elementNode: ElementNode
         let preformatted: Bool
     }
     
@@ -324,7 +324,7 @@ private extension AttributedStringParser {
 
 
     /// Splits a collection of Nodes in two groups: 'Nodes that also exist in a Reference Collection', and
-    /// 'Completely New Nodes'. 
+    /// 'Completely New Nodes'.
     ///
     /// *Note*: The order of those Pre Existing nodes will be arranged in the exact same way as they appear
     /// in the reference collection.
@@ -403,6 +403,11 @@ private extension AttributedStringParser {
         _ newProperties: [ParagraphProperty],
         into previousConversions: [ParagraphPropertyConversion],
         styleNodes: [Node]) -> [ParagraphPropertyConversion]? {
+            
+        if newProperties.contains(where: {$0 is Header}) { return nil}
+        if let list = newProperties.first(where: {$0 is TextList}) as? TextList, list.style == .checked {
+            return nil
+        }
         
         guard let mergeableConversions = self.mergeableConversions(from: previousConversions, for: newProperties),
             let lastMergeableConversion = mergeableConversions.last else {
@@ -572,7 +577,7 @@ extension AttributedStringParser {
         var preformatted = false
         var parentElementNode: ElementNode?
         
-        let conversions = properties.compactMap({ (property) -> ParagraphPropertyConversion? in
+        var conversions = properties.compactMap({ (property) -> ParagraphPropertyConversion? in
             guard let conversion = convert(property, preformatted: &preformatted) else {
                 return nil
             }
@@ -589,6 +594,16 @@ extension AttributedStringParser {
         // We don't allow not having at least 1 block-level element.
         guard conversions.count > 0 else {
             return [defaultParagraphPropertyConversion(styleNodes: styleNodes)]
+        }
+        
+        if let pNode = conversions.first?.elementNode as? ElementNode, pNode.isNodeType(.p), pNode.hasChildren() {
+            for (index, childNode) in pNode.children.enumerated() {
+                if let elementNode = childNode as? ElementNode {
+                    if elementNode.isNodeType(.h1) || elementNode.isNodeType(.h2) || elementNode.isNodeType(.h3) {
+                        conversions[0].elementNode = elementNode
+                    }
+                }
+            }
         }
         
         append(styleNodes[0 ..< styleNodes.endIndex], to: ArraySlice(conversions))

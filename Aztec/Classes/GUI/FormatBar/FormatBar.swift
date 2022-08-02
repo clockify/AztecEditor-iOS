@@ -404,18 +404,22 @@ open class FormatBar: UIView {
         }
     }
     
+    public func updateTitleBar(with identifier: FormattingIdentifier = .p) {
+        if let titleBar = scrollableStackView.subviews[0] as? FormatBarItem {
+            let titleText = getTextViewTitleText(for: identifier)
+            titleBar.setTitle(titleText, for: .normal)
+            
+            let imageInsents: CGFloat = identifier == .p ? Constants.textButtonExtendedLeading : Constants.textButtonNormalLeading
+            
+            titleBar.imageEdgeInsets = UIEdgeInsets(top: 0, left: imageInsents, bottom: 0, right: 0)
+            titleBar.titleEdgeInsets = UIEdgeInsets(top: 0, left: -imageInsents, bottom: 0, right: 0)
+        }
+    }
+    
     public func updateFormatBar(with identifiers: Set<FormattingIdentifier>) {
         identifiers.forEach { identifier in
             if identifier == FormattingIdentifier.p || identifier == FormattingIdentifier.header1 || identifier == FormattingIdentifier.header2 || identifier == FormattingIdentifier.header3 {
-                if let titleBar = scrollableStackView.subviews[0] as? FormatBarItem {
-                    let titleText = getTextViewTitleText(for: identifier)
-                    titleBar.setTitle(titleText, for: .normal)
-                    
-                    let imageInsents: CGFloat = identifier == .p ? Constants.textButtonExtendedLeading : Constants.textButtonNormalLeading
-                    
-                    titleBar.imageEdgeInsets = UIEdgeInsets(top: 0, left: imageInsents, bottom: 0, right: 0)
-                    titleBar.titleEdgeInsets = UIEdgeInsets(top: 0, left: -imageInsents, bottom: 0, right: 0)
-                }
+                updateTitleBar(with: identifier)
             }
         }
     }

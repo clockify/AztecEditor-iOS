@@ -282,7 +282,7 @@ open class TextView: UITextView {
             return UIColor.label
         } else {
             return UIColor.darkText
-        }        
+        }
     }()
 
     open override var textColor: UIColor? {
@@ -757,7 +757,7 @@ open class TextView: UITextView {
         if deletionRange.length == 0 {
             deletionRange.location = max(selectedRange.location - 1, 0)
             deletionRange.length = 1
-            deletionRange = ensureRemovalOfMentions(at: deletionRange)
+//            deletionRange = ensureRemovalOfMentions(at: deletionRange)
             selectedRange = deletionRange
         }
         
@@ -776,7 +776,7 @@ open class TextView: UITextView {
         }
 
         if storage.length > 0 {
-            deletedString = storage.attributedSubstring(from: deletionRange) 
+            deletedString = storage.attributedSubstring(from: deletionRange)
         }
         
         if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
@@ -810,10 +810,12 @@ open class TextView: UITextView {
                     break
                 }
                 
-                if index == 0 {
+                
+                if index == 0 && emojiRangeCheck.location - 1 >= 0 {
                     return NSRange(location: emojiRangeCheck.location - 1, length: emojiRangeCheck.length + 1)
                     break
                 }
+                
                 return emojiRangeCheck
                 break
             }
@@ -1119,7 +1121,7 @@ open class TextView: UITextView {
             formatter.removeAttributes(from: storage, at: applicationRange)
         } else {
             formatter.applyAttributes(to: storage, at: applicationRange)
-        }        
+        }
 
         if applicationRange.length == 0 {
             typingAttributes = formatter.toggle(in: typingAttributes)
@@ -1268,7 +1270,10 @@ open class TextView: UITextView {
     ///
     open func toggleUnorderedList(range: NSRange) {
         ensureInsertionOfEndOfLineForEmptyParagraphAtEndOfFile(forApplicationRange: range)
-
+        
+        let fontFormatter = HeaderFormatter(headerLevel: .none)
+        toggle(formatter: fontFormatter, atRange: range)
+        
         let formatter = TextListFormatter(style: .unordered, placeholderAttributes: typingAttributes)
         toggle(formatter: formatter, atRange: range)
 
@@ -1351,7 +1356,7 @@ open class TextView: UITextView {
     ///     B.  We're at the end of the document
     ///     C.  There's a List (OR) Blockquote (OR) Pre active
     ///
-    /// We're doing this as a workaround, in order to force the LayoutManager render the Bullet (OR) 
+    /// We're doing this as a workaround, in order to force the LayoutManager render the Bullet (OR)
     /// Blockquote's background.
     ///
     private func ensureInsertionOfEndOfLine(beforeInserting text: String) {
@@ -1533,7 +1538,7 @@ open class TextView: UITextView {
 
         let originalText = attributedText.attributedSubstring(from: range)
         let attributedTitle = NSAttributedString(string: title)
-        let finalRange = NSRange(location: range.location, length: attributedTitle.length)        
+        let finalRange = NSRange(location: range.location, length: attributedTitle.length)
 
         undoManager?.registerUndo(withTarget: self, handler: { [weak self] target in
             self?.undoTextReplacement(of: originalText, finalRange: finalRange)
@@ -1604,7 +1609,7 @@ open class TextView: UITextView {
     open func replaceWithImage(at range: NSRange, sourceURL url: URL, placeHolderImage: UIImage?, identifier: String = UUID().uuidString) -> ImageAttachment {
         let attachment = ImageAttachment(identifier: identifier, url: url)
         attachment.delegate = storage
-        attachment.image = placeHolderImage        
+        attachment.image = placeHolderImage
         replace(at: range, with: attachment)
         return attachment
     }
@@ -1808,7 +1813,7 @@ open class TextView: UITextView {
         let index = maxIndex(range.location)
         var effectiveRange = NSRange()
         guard index < storage.length,
-            let _ = storage.attribute(.link, at: index, longestEffectiveRange: &effectiveRange, in: storage.rangeOfEntireString),        
+            let _ = storage.attribute(.link, at: index, longestEffectiveRange: &effectiveRange, in: storage.rangeOfEntireString),
             let representation = storage.attribute(.linkHtmlRepresentation, at: effectiveRange.location, effectiveRange: nil) as? HTMLRepresentation,
             case .element(let element) = representation.kind else {
                 return nil
@@ -2415,7 +2420,7 @@ public extension TextView {
 
     /// Undoable Operation. Returns the Final Text Range, resulting from applying the undoable Operation
     /// Note that for Styling Operations, the Final Range will most likely match the Initial Range.
-    /// For text editing it will only match the initial range if the original string was replaced with a 
+    /// For text editing it will only match the initial range if the original string was replaced with a
     /// string of the same length.
     ///
     typealias Undoable = () -> NSRange
@@ -2457,24 +2462,24 @@ public extension TextView {
 
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertToNSAttributedStringKeyDictionary(_ input: [String: Any]) -> [NSAttributedString.Key: Any] {
-	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
+    return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
 }
 
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertFromOptionalNSAttributedStringKeyDictionary(_ input: [NSAttributedString.Key: Any]?) -> [String: Any]? {
-	guard let input = input else { return nil }
-	return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
+    guard let input = input else { return nil }
+    return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
 }
 
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertToOptionalNSAttributedStringKeyDictionary(_ input: [String: Any]?) -> [NSAttributedString.Key: Any]? {
-	guard let input = input else { return nil }
-	return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
+    guard let input = input else { return nil }
+    return Dictionary(uniqueKeysWithValues: input.map { key, value in (NSAttributedString.Key(rawValue: key), value)})
 }
 
 // Helper function inserted by Swift 4.2 migrator.
 fileprivate func convertFromNSAttributedStringKeyDictionary(_ input: [NSAttributedString.Key: Any]) -> [String: Any] {
-	return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
+    return Dictionary(uniqueKeysWithValues: input.map {key, value in (key.rawValue, value)})
 }
 
 extension TextView: ChecklistAttachmentsDelegate {

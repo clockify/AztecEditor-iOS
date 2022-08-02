@@ -173,7 +173,7 @@ extension NSAttributedString
         let range = NSRange(location: 0, length: length)
         var attachmentRanges = [NSRange]()
         enumerateAttribute(.emojiTag, in: range, options: []) { (value, effectiveRange, nil) in
-            if let foundMention = value as? EmojiParagraphPropery {
+            if let foundMention = value as? EmojiObject {
                 attachmentRanges.append(effectiveRange)
             }
         }

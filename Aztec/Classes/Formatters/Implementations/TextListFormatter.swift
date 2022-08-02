@@ -26,7 +26,7 @@ class TextListFormatter: ParagraphAttributeFormatter {
     }
     
     class func getCheckedRepresentation() -> HTMLRepresentation {
-        let elementNode = ElementNode(type: .ulChecked)
+        let elementNode = ElementNode(type: .ul)
         elementNode.updateAttribute(ofType: .class, value: Attribute.Value(withString:"task-list"))
         elementNode.updateAttribute(named: "data-checked", value: Attribute.Value(withString:"false"))
         let elementRepresentation = HTMLElementRepresentation(elementNode)
