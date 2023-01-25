@@ -69,6 +69,10 @@ public protocol TextViewAttachmentDelegate: AnyObject {
     func textView(_ textView: TextView, deselected attachment: NSTextAttachment, atPosition position: CGPoint)
 }
 
+public protocol TextMentionDelegate: AnyObject {
+    func textView(_ textView: TextView, insertedMentionChar atPosition: NSRange)
+}
+
 
 // MARK: - TextViewAttachmentImageProvider
 //
@@ -170,6 +174,8 @@ public struct ChecklistInfo {
 open class TextView: UITextView {
 
     // MARK: - Aztec Delegates
+    
+    open weak var textMentionDelegate: TextMentionDelegate?
 
     open weak var textChecklistDelegate: TextViewChecklistDelegate?
     /// The media delegate takes care of providing remote media when requested by the `TextView`.
@@ -746,6 +752,10 @@ open class TextView: UITextView {
         if text == "\n" && typingAttributes.paragraphStyle().lists.first?.style == .checked {
             toggleCheckedList(range: selectedRange)
             toggleCheckedList(range: selectedRange)
+        }
+        
+        if text == "@" {
+            textMentionDelegate?.textView(self, insertedMentionChar: selectedRange)
         }
     }
 
