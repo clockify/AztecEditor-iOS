@@ -328,7 +328,7 @@ extension EditorView: UITextInput {
 
 // MARK: - Initial Setup
 
-private extension EditorView {
+extension EditorView {
     
     /// Performs the initial setup for the view.
     ///
@@ -351,7 +351,7 @@ private extension EditorView {
     
     /// Sets-up the constraints for all subviews
     ///
-    func setupConstraints() {
+    public func setupConstraints() {
         translatesAutoresizingMaskIntoConstraints = false
         htmlTextView.translatesAutoresizingMaskIntoConstraints = false
         richTextView.translatesAutoresizingMaskIntoConstraints = false
