@@ -71,6 +71,14 @@ public protocol TextViewAttachmentDelegate: AnyObject {
 
 public protocol TextMentionDelegate: AnyObject {
     func textView(_ textView: TextView, insertedMentionChar atPosition: NSRange)
+    func textView(_ textView: Aztec.TextView, didChangeSearchPredicate searchPredicate: String, isAppending: Bool)
+    func textView(_ textView: TextView, didRemoveMentionChar removed: Bool)
+}
+
+public protocol ItemMentionDelegate: AnyObject {
+    func textViewItemMention(_ textView: TextView, insertedItemMentionChar atPosition: NSRange)
+    func textViewItemMention(_ textView: Aztec.TextView, didChangeSearchPredicate itemSearchPredicate: String, isAppending: Bool)
+    func textViewItemMention(_ textView: TextView, didRemoveItemMentionChar removed: Bool)
 }
 
 
@@ -176,6 +184,7 @@ open class TextView: UITextView {
     // MARK: - Aztec Delegates
     
     open weak var textMentionDelegate: TextMentionDelegate?
+    open weak var textItemMentionDelegate: ItemMentionDelegate?
 
     open weak var textChecklistDelegate: TextViewChecklistDelegate?
     /// The media delegate takes care of providing remote media when requested by the `TextView`.
@@ -206,7 +215,9 @@ open class TextView: UITextView {
     open var shouldRecalculateTypingAttributesOnDeleteBackward = true
 
     // MARK: - Customizable Input VC
-    
+    var mentionInCreationRange: NSRange?
+    var itemMentionInCreationRange: NSRange?
+
     private var customInputViewController: UIInputViewController?
     
     open override var inputViewController: UIInputViewController? {
@@ -715,6 +726,12 @@ open class TextView: UITextView {
         // https://github.com/wordpress-mobile/AztecEditor-iOS/issues/462
         //
         typingAttributes[.attachment] = nil
+        if typingAttributes[.mentionTag] != nil {
+            typingAttributes[.mentionTag] = nil
+            (typingAttributes[.paragraphStyle] as? ParagraphStyle)?.removeProperties(ofType: Mention.self)
+            typingAttributes[.foregroundColor] = UIColor.white
+            typingAttributes.removeValue(forKey: .backgroundColor)
+        }
 
         guard !ensureRemovalOfParagraphAttributesWhenPressingEnterInAnEmptyParagraph(input: text) else {
             return
@@ -740,8 +757,24 @@ open class TextView: UITextView {
         restoreDefaultFontIfNeeded()
 
         ensureRemovalOfLinkTypingAttribute(at: selectedRange)
+        
+        if let mentionRange = mentionInCreationRange {
+            self.mentionInCreationRange = NSRange(location: mentionRange.location, length: mentionRange.length - selectedRange.length + text.count)
+        }
+        
+        if let itemMention = itemMentionInCreationRange {
+            self.itemMentionInCreationRange = NSRange(location: itemMention.location, length: itemMention.length - selectedRange.length + text.count)
+        }
 
         super.insertText(text)
+
+        if let mentionRange = mentionInCreationRange {
+            textMentionDelegate?.textView(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: mentionInCreationRange!)!)!, isAppending: true)
+        }
+        
+        if let itemMention = itemMentionInCreationRange {
+            textItemMentionDelegate?.textViewItemMention(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: itemMentionInCreationRange!)!)!, isAppending: true)
+        }
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
 
@@ -755,7 +788,15 @@ open class TextView: UITextView {
         }
         
         if text == "@" {
+            itemMentionInCreationRange = nil
+            mentionInCreationRange = selectedRange
             textMentionDelegate?.textView(self, insertedMentionChar: selectedRange)
+        }
+        
+        if text == "#" {
+            mentionInCreationRange = nil
+            itemMentionInCreationRange = selectedRange
+            textItemMentionDelegate?.textViewItemMention(self, insertedItemMentionChar: selectedRange)
         }
     }
 
@@ -795,6 +836,29 @@ open class TextView: UITextView {
         }
         
         ensureRemovalOfParagraphStylesBeforeRemovingCharacter(at: selectedRange)
+        
+        if let mentionRange = mentionInCreationRange {
+            self.mentionInCreationRange = NSRange(location: mentionRange.location, length: mentionRange.length - abs(selectedRange.length))
+            
+            if self.mentionInCreationRange?.length ?? 0 < 0 {
+                self.mentionInCreationRange = nil
+                textMentionDelegate?.textView(self, didRemoveMentionChar: true)
+            }else {
+                textMentionDelegate?.textView(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: mentionInCreationRange!)!)!, isAppending: false)
+            }
+        }
+        
+        if let mentionRange = itemMentionInCreationRange {
+            self.itemMentionInCreationRange = NSRange(location: mentionRange.location, length: mentionRange.length - abs(selectedRange.length))
+            
+            if self.itemMentionInCreationRange?.length ?? 0 < 0 {
+                self.itemMentionInCreationRange = nil
+                textItemMentionDelegate?.textViewItemMention(self, didRemoveItemMentionChar: true)
+            }else {
+                textItemMentionDelegate?.textViewItemMention(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: itemMentionInCreationRange!)!)!, isAppending: false)
+            }
+        }
+        
         super.deleteBackward()
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
@@ -804,6 +868,7 @@ open class TextView: UITextView {
             recalculateTypingAttributes()
             configureCheckviews()
         }
+        
         notifyTextViewDidChange()
     }
     
@@ -815,6 +880,7 @@ open class TextView: UITextView {
             let possibleEmoji = storage.attributedSubstring(from: emojiRangeCheck)
             
             if !possibleEmoji.string.unicodeScalars.isEmpty {
+                if possibleEmoji.string == "#" { return nil }
                 if possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isAlphabetic }) { return nil}
                 if !possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isEmoji }) {
                     continue
@@ -1234,6 +1300,18 @@ open class TextView: UITextView {
 
         forceRedrawCursorAfterDelay()
     }
+    
+    open func addMention(dataDenotationChar: String, dataValue: String, dataID: Int64, dataType: String) {
+        if let mentionInCreationRange {
+            replace(NSRange(location: mentionInCreationRange.location - 1, length: mentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span> ")
+            self.mentionInCreationRange = nil
+        }
+        
+        if let itemMentionInCreationRange {
+            replace(NSRange(location: itemMentionInCreationRange.location - 1, length: itemMentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span> ")
+            self.itemMentionInCreationRange = nil
+        }
+    }
 
     /// Adds or removes a ordered list style from the specified range.
     ///
@@ -1500,6 +1578,19 @@ open class TextView: UITextView {
                 recalculateTypingAttributes(at: position)
             }
             super.selectedTextRange = newValue
+            if let mentionInCreationRange {
+                if !selectedRange.contains(mentionInCreationRange) {
+                    self.itemMentionInCreationRange = nil
+                    textMentionDelegate?.textView(self, didRemoveMentionChar: true)
+                }
+            }
+            
+            if let itemMentionInCreationRange {
+                if !selectedRange.contains(itemMentionInCreationRange) {
+                    self.mentionInCreationRange = nil
+                    textItemMentionDelegate?.textViewItemMention(self, didRemoveItemMentionChar: true)
+                }
+            }
         }
     }
     
@@ -2048,7 +2139,7 @@ private extension TextView {
         var newRangeEnd = range.location + range.length
 
         mentionsRanges.forEach { singleRange in
-            if range.location <= singleRange.location + singleRange.length && range.location >= singleRange.location {
+            if range.location < singleRange.location + singleRange.length && range.location >= singleRange.location {
                 newRangeStart = singleRange.location
             }
             
@@ -2503,5 +2594,15 @@ extension TextView: ChecklistAttachmentsDelegate {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
             self.configureCheckviews()
         }
+    }
+}
+
+extension UITextView {
+
+    func textRangeFromNSRange(range:NSRange) -> UITextRange? {
+        let beginning = beginningOfDocument
+        guard let start = position(from: beginning, offset: range.location), let end = position(from: start, offset: range.length) else { return nil }
+
+        return textRange(from: start, to: end)
     }
 }

@@ -24,13 +24,24 @@ public struct MentionObject: Equatable {
         return DataType(rawValue: dataType)!
     }
     
+    public var displayString: String {
+        return dataDenotationChar + dataValue
+    }
+    
+    public init(dataDenotationChar: String, dataId: Int, dataValue: String, dataType: String) {
+        self.dataDenotationChar = dataDenotationChar
+        self.dataId = dataId
+        self.dataValue = dataValue
+        self.dataType = dataType
+    }
+    
     public static func ==(lhs: MentionObject, rhs: MentionObject) -> Bool {
         return lhs.dataDenotationChar == rhs.dataDenotationChar && lhs.dataId == rhs.dataId && lhs.dataValue == rhs.dataValue && rhs.dataType == lhs.dataType
     }
 }
 
-class Mention: ParagraphProperty, NSCopying {
-    func copy(with zone: NSZone? = nil) -> Any {
+public class Mention: ParagraphProperty, NSCopying {
+    public func copy(with zone: NSZone? = nil) -> Any {
         return Mention(mentionUser: nil, mentionTask: nil, with: self.representation)
     }
 
@@ -38,8 +49,15 @@ class Mention: ParagraphProperty, NSCopying {
     let mentionTask: MentionObject?
     var isEmoji: Bool = false
     let identifier: UUID = UUID()
+    
+    public init(mentionUser: MentionObject?, mentionTask: MentionObject?) {
+        self.mentionUser = mentionUser
+        self.mentionTask = mentionTask
+//        let representation = HTMLRepresentation(for: .attribute(Mention()!))
+        super.init(with: nil)
+    }
 
-    init(mentionUser: MentionObject?, mentionTask: MentionObject?, with representation: HTMLRepresentation? = nil) {
+    public init(mentionUser: MentionObject?, mentionTask: MentionObject?, with representation: HTMLRepresentation? = nil) {
         if let representation = representation, case let .element( html ) = representation.kind {
             
             if let dataType = html.attribute(ofType: .dataType)?.value.toString(), let dataID = Int(html.attribute(ofType: .dataID)!.value.toString()!), let dataValue = html.attribute(ofType: .dataValue)?.value.toString(), let mentionChar = html.attribute(ofType: .dataDenotationChar)?.value.toString() {
@@ -75,6 +93,16 @@ class Mention: ParagraphProperty, NSCopying {
 
     public static func ==(lhs: Mention, rhs: Mention) -> Bool {
         return lhs.mentionUser == rhs.mentionUser && lhs.mentionTask == rhs.mentionTask && lhs.identifier == rhs.identifier
+    }
+    
+    func getDisplayText() -> String {
+        if let mentionUser {
+            return mentionUser.displayString
+        }else if let mentionTask {
+            return mentionTask.displayString
+        }
+        
+        return ""
     }
 }
 
