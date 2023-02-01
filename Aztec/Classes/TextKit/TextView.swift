@@ -880,7 +880,7 @@ open class TextView: UITextView {
             let possibleEmoji = storage.attributedSubstring(from: emojiRangeCheck)
             
             if !possibleEmoji.string.unicodeScalars.isEmpty {
-                if possibleEmoji.string == "#" { return nil }
+                if possibleEmoji.string.unicodeScalars.contains(where: {$0 == "#"}) { return nil }
                 if possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isAlphabetic }) { return nil}
                 if !possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isEmoji }) {
                     continue
