@@ -214,6 +214,7 @@ open class TextView: UITextView {
     ///
     open var shouldRecalculateTypingAttributesOnDeleteBackward = true
 
+    var isFixingSpaceIssue: Bool = false
     // MARK: - Customizable Input VC
     var mentionInCreationRange: NSRange?
     var itemMentionInCreationRange: NSRange?
@@ -263,7 +264,7 @@ open class TextView: UITextView {
     // MARK: - Properties: Text Lists
 
     var maximumListIndentationLevels = 7
-    
+        
     // MARK: - Properties: Blockquotes
     
     /// The max levels of quote indentation allowed
@@ -719,6 +720,12 @@ open class TextView: UITextView {
 
     open override func insertText(_ text: String) {
         
+        if isFixingSpaceIssue {
+            super.insertText(text)
+            selectedRange = NSRange(location: selectedRange.location + 1, length: selectedRange.length)
+            return
+        }
+        
         // For some reason the text view is allowing the attachment style to be set in
         // typingAttributes.  That's simply not acceptable.
         //
@@ -808,7 +815,6 @@ open class TextView: UITextView {
         if deletionRange.length == 0 {
             deletionRange.location = max(selectedRange.location - 1, 0)
             deletionRange.length = 1
-//            deletionRange = ensureRemovalOfMentions(at: deletionRange)
             selectedRange = deletionRange
         }
         
@@ -858,8 +864,17 @@ open class TextView: UITextView {
                 textItemMentionDelegate?.textViewItemMention(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: itemMentionInCreationRange!)!)!, isAppending: false)
             }
         }
-        
+
+        let originalRange = selectedRange
+   
         super.deleteBackward()
+        
+        // PROBLEM WITH DELETING SPACE BEFORE DELETING CHARACTER
+        if originalRange.location != selectedRange.location {
+            isFixingSpaceIssue = true
+            insertText(" ")
+            isFixingSpaceIssue = false
+        }
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
         ensureRemovalOfParagraphAttributesWhenPressingBackspaceAndEmptyingTheDocument()
@@ -1017,6 +1032,25 @@ open class TextView: UITextView {
         }
         
         textChecklistDelegate?.textViewShouldReconfigureChecklist(checklistInfos: checklistsInfo)
+    }
+    
+    public func replaceMentionText(_ range: NSRange, withHTML html: String) {
+        
+        var string = storage.htmlConverter.attributedString(from: html, defaultAttributes: defaultAttributes)
+        
+        let originalString = storage.attributedSubstring(from: range)
+        let finalRange = NSRange(location: range.location, length: string.length)
+        
+        undoManager?.registerUndo(withTarget: self, handler: { [weak self] target in
+            self?.undoTextReplacement(of: originalString, finalRange: finalRange)
+        })
+        
+        if let originalAttributes = originalString.attribute(.paragraphStyle, at: 0, effectiveRange: nil) as? ParagraphStyle {
+            (string as? NSMutableAttributedString)?.addAttributes([.paragraphStyle: originalAttributes], range: NSRange(location: 0, length: string.length))
+        }
+        
+        storage.replaceCharacters(in: range, with: string)
+        selectedRange = NSRange(location: finalRange.location + finalRange.length, length: 0)
     }
     
     public func replace(_ range: NSRange, withHTML html: String) {
@@ -1303,12 +1337,12 @@ open class TextView: UITextView {
     
     open func addMention(dataDenotationChar: String, dataValue: String, dataID: Int64, dataType: String) {
         if let mentionInCreationRange {
-            replace(NSRange(location: mentionInCreationRange.location - 1, length: mentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span> ")
+            replaceMentionText(NSRange(location: mentionInCreationRange.location - 1, length: mentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span>")
             self.mentionInCreationRange = nil
         }
         
         if let itemMentionInCreationRange {
-            replace(NSRange(location: itemMentionInCreationRange.location - 1, length: itemMentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span> ")
+            replaceMentionText(NSRange(location: itemMentionInCreationRange.location - 1, length: itemMentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span>")
             self.itemMentionInCreationRange = nil
         }
     }
