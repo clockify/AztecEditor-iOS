@@ -1368,6 +1368,7 @@ open class TextView: UITextView {
             toggle(formatter: liFormatter, atRange: range)
         }
         forceRedrawCursorAfterDelay()
+        configureCheckviews()
     }
     
     /// Adds or removes a checked list style from the specified range.
@@ -1413,6 +1414,7 @@ open class TextView: UITextView {
             toggle(formatter: liFormatter, atRange: range)
         }
         forceRedrawCursorAfterDelay()
+        configureCheckviews()
     }
 
 
