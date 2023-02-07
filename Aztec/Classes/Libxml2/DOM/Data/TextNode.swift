@@ -67,7 +67,7 @@ public class TextNode: Node {
             return false
         }
         return self.name == textNode.name && self.contents == textNode.contents
-    }    
+    }
 }
 
 // MARK: - Text Sanitization
@@ -123,6 +123,7 @@ extension TextNode {
     /// - Returns: true if sanitization should happen, false otherwise
     ///
     private func shouldSanitizeText() -> Bool {
-        return !hasAncestor(ofType: .pre)
+        return false
+//        return !hasAncestor(ofType: .pre)
     }
 }
