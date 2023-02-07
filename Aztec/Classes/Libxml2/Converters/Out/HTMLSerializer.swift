@@ -91,6 +91,10 @@ private extension HTMLSerializer {
         if elementNode.name == "span" && elementNode.attribute(named: "class")?.value.toString() == "ql-emojiblot" {
             return "<span class=\"\(elementNode.attribute(named: "class")!.value.toString()!)\" data-name=\"\(elementNode.attribute(named: "data-name")!.value.toString()!)\">﻿<span contenteditable=\"\(elementNode.attribute(named: "contenteditable")!.value.toString()!)\"><span class=\"\(elementNode.attribute(named: "childClass")!.value.toString()!)\">\(elementNode.attribute(named: "text")!.value.toString()!)</span></span>﻿</span>"
         }
+        
+        if elementNode.name == "span" && elementNode.attribute(named: "class")?.value.toString() == "mention" {
+            return "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(elementNode.attribute(named: "data-denotation-char")?.value.toString() ?? "@")\" data-id=\"\(elementNode.attribute(named: "data-id")?.value.toString() ?? "0")\" data-value=\"\(elementNode.attribute(named: "data-value")?.value.toString() ?? "")\" data-type=\"\(elementNode.attribute(named: "data-type")?.value.toString() ?? "user")\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(elementNode.attribute(named: "data-denotation-char")?.value.toString() ?? "@")</span>\(elementNode.attribute(named: "data-value")?.value.toString() ?? "")</span></span>"
+        }
 
         let tag = converter(for: elementNode).convert(elementNode)
         

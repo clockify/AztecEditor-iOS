@@ -135,10 +135,28 @@ public class HTMLConverter {
         pluginManager.process(outputHTMLTree: rootNode)
         makeListsStandAloneNodes(rootNode: rootNode)
         makeBlockquotesStandAloneNodes(rootNode: rootNode)
+        makeParagraphStandAloneNodes(rootNode: rootNode)
         removeDuplicateEmojis(rootNode: rootNode)
         let html = treeToHTML.serialize(rootNode, prettify: prettify)
         
         return pluginManager.process(outputHTML: html)
+    }
+    
+    func makeParagraphStandAloneNodes(rootNode: RootNode) {
+        for (index, node) in rootNode.children.enumerated() {
+            if let childNode = node as? ElementNode, childNode.hasChildren(), childNode.isNodeType(.p) {
+                for (nastedIndex, nastedChildNode) in childNode.children.enumerated() {
+                    if let elementNode = nastedChildNode as? ElementNode {
+                        if elementNode.isNodeType(.p) {
+                            rootNode.children.insert(elementNode, at: index + 1)
+                            if childNode.children.isEmpty {
+                                rootNode.children.remove(at: index)
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
     
     func makeListsStandAloneNodes(rootNode: RootNode ) {

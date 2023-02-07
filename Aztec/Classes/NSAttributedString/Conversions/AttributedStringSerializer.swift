@@ -148,10 +148,10 @@ class AttributedStringSerializer {
             let emojiObject = EmojiObject(classValue: classValue ?? "", dataNameValue: dataNameValue ?? "", contenteditableValue: contenteditableValue ?? "", childClassValue: childClassValue ?? "", text: text ?? "")
             attributes[.emojiTag] = emojiObject
         }
-            if let spanNode = element.children.first as? ElementNode, spanNode.isNodeType(.span), spanNode.attribute(ofType: .class)?.value.toString() == "mention" {
-                element.children.insert(TextNode(text: " "), at: 0)
-                element.children.insert(TextNode(text: " "), at: 2)
-            }
+//            if let spanNode = element.children.first as? ElementNode, spanNode.isNodeType(.span), spanNode.attribute(ofType: .class)?.value.toString() == "mention" {
+//                element.children.insert(TextNode(text: " "), at: 0)
+//                element.children.insert(TextNode(text: " "), at: 2)
+//            }
             convertedString = converter.convert(element, inheriting: attributes, contentSerializer: contentSerializer)
 //        }
 
