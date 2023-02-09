@@ -1337,12 +1337,12 @@ open class TextView: UITextView {
     
     open func addMention(dataDenotationChar: String, dataValue: String, dataID: Int64, dataType: String) {
         if let mentionInCreationRange {
-            replaceMentionText(NSRange(location: mentionInCreationRange.location - 1, length: mentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span>")
+            replaceMentionText(NSRange(location: mentionInCreationRange.location - 1, length: mentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span> ")
             self.mentionInCreationRange = nil
         }
         
         if let itemMentionInCreationRange {
-            replaceMentionText(NSRange(location: itemMentionInCreationRange.location - 1, length: itemMentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span>")
+            replaceMentionText(NSRange(location: itemMentionInCreationRange.location - 1, length: itemMentionInCreationRange.length + 1), withHTML: "<span class=\"mention\" data-index=\"0\" data-denotation-char=\"\(dataDenotationChar)\" data-id=\"\(dataID)\" data-value=\"\(dataValue)\" data-type=\"\(dataType)\"><span contenteditable=\"false\"><span class=\"ql-mention-denotation-char\">\(dataDenotationChar)</span>\(dataValue)</span></span> ")
             self.itemMentionInCreationRange = nil
         }
     }

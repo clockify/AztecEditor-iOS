@@ -145,10 +145,13 @@ public class HTMLConverter {
     func makeParagraphStandAloneNodes(rootNode: RootNode) {
         for (index, node) in rootNode.children.enumerated() {
             if let childNode = node as? ElementNode, childNode.hasChildren(), childNode.isNodeType(.p) {
+                var indexingLevel: Int = 0
                 for (nastedIndex, nastedChildNode) in childNode.children.enumerated() {
                     if let elementNode = nastedChildNode as? ElementNode {
                         if elementNode.isNodeType(.p) {
-                            rootNode.children.insert(elementNode, at: index + 1)
+                            childNode.children.remove(at: nastedIndex - indexingLevel)
+                            indexingLevel += 1
+                            rootNode.children.insert(elementNode, at: index + indexingLevel)
                             if childNode.children.isEmpty {
                                 rootNode.children.remove(at: index)
                             }
