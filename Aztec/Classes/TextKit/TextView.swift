@@ -805,6 +805,16 @@ open class TextView: UITextView {
             itemMentionInCreationRange = selectedRange
             textItemMentionDelegate?.textViewItemMention(self, insertedItemMentionChar: selectedRange)
         }
+        
+        if text == " " && mentionInCreationRange?.length == 1 {
+            mentionInCreationRange = nil
+            textMentionDelegate?.textView(self, didRemoveMentionChar: true)
+        }
+        
+        if text == " " && itemMentionInCreationRange?.length == 1 {
+            itemMentionInCreationRange = nil
+            textItemMentionDelegate?.textViewItemMention(self, didRemoveItemMentionChar: true)
+        }
     }
 
     open override func deleteBackward() {
@@ -1605,6 +1615,7 @@ open class TextView: UITextView {
         }
         
         set {
+            var newRange: UITextRange? = newValue
             if let start = newValue?.start {
                 // We need to calculate the new typing attributes before we change the selected text range.
                 // This is because as soon as we change the selected text range bellow, a call to
@@ -1612,8 +1623,17 @@ open class TextView: UITextView {
                 // be updated by then.
                 let position = self.offset(from: self.beginningOfDocument, to: start)
                 recalculateTypingAttributes(at: position)
+                
+//                if let paragraphStyle = typingAttributes[.paragraphStyle] as? ParagraphStyle, !paragraphStyle.mention.isEmpty {
+//                    let newStart = preventSelectingMention(at: position)
+//                    if let newPosition = self.position(from: newValue!.start, offset: newStart - position) {
+//                        selectedTextRange = textRange(from: newPosition, to: newPosition)
+//                        forceRedrawCursorAfterDelay()
+//                        return
+//                    }
+//                }
             }
-            super.selectedTextRange = newValue
+            super.selectedTextRange = newRange
             if let mentionInCreationRange {
                 if !selectedRange.contains(mentionInCreationRange) {
                     self.itemMentionInCreationRange = nil
@@ -1665,6 +1685,33 @@ open class TextView: UITextView {
             
             typingAttributes = attributedText.attributes(at: location, effectiveRange: nil)
         }
+    }
+    
+    func getCurrentAttributes(at location: Int) -> [NSAttributedString.Key : Any] {
+        guard storage.length > 0 else {
+            typingAttributes = defaultAttributes
+            return [:]
+        }
+        
+        if storage.string.isEmptyLineAtEndOfFile(at: location) {
+            removeParagraphPropertiesFromTypingAttributes()
+        } else {
+            let location = min(location, storage.length - 1)
+            
+            return attributedText.attributes(at: location, effectiveRange: nil)
+        }
+        
+        return [:]
+    }
+    
+    private func preventSelectingMention(at location: Int) -> Int {
+        if let paragraphStyle = getCurrentAttributes(at: location)[.paragraphStyle] as? ParagraphStyle, !paragraphStyle.mention.isEmpty {
+            if location != 0 {
+                return preventSelectingMention(at: location - 1)
+            }
+        }
+        
+        return location
     }
 
     // MARK: - Links
