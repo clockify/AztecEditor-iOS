@@ -881,9 +881,11 @@ open class TextView: UITextView {
         
         // PROBLEM WITH DELETING SPACE BEFORE DELETING CHARACTER
         if originalRange.location != selectedRange.location {
-            isFixingSpaceIssue = true
-            insertText(" ")
-            isFixingSpaceIssue = false
+            if (typingAttributes[.paragraphStyle] as? ParagraphStyle)?.lists.isEmpty ?? true {
+                isFixingSpaceIssue = true
+                insertText(" ")
+                isFixingSpaceIssue = false
+            }
         }
 
         evaluateRemovalOfSingleLineParagraphAttributesAfterSelectionChange()
