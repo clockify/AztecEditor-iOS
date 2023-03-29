@@ -820,6 +820,11 @@ open class TextView: UITextView {
     open override func deleteBackward() {
         if selectedRange == NSRange(location: 0, length: 0) { return }
         
+        if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
+            super.deleteBackward()
+            return
+        }
+        
         var deletionRange = selectedRange
         var deletedString = NSAttributedString()
         if deletionRange.length == 0 {
@@ -835,17 +840,17 @@ open class TextView: UITextView {
             selectedRange = newDeletingRange
         }
         
-        let emojiDeletionRange = ensureRemovalOfEmoji(at: deletionRange)
-
-        if deletionRange != emojiDeletionRange {
-            deletionRange = emojiDeletionRange
-            selectedRange = emojiDeletionRange
-        }else {
-            if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
-                selectedRange = emojiCheckRange
-                deletionRange = emojiCheckRange
-            }
-        }
+//        let emojiDeletionRange = ensureRemovalOfEmoji(at: deletionRange)
+//
+//        if deletionRange != emojiDeletionRange {
+//            deletionRange = emojiDeletionRange
+//            selectedRange = emojiDeletionRange
+//        }else {
+//            if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
+//                selectedRange = emojiCheckRange
+//                deletionRange = emojiCheckRange
+//            }
+//        }
 
         if storage.length > 0 {
             deletedString = storage.attributedSubstring(from: deletionRange)
