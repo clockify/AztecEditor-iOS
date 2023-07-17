@@ -933,9 +933,13 @@ open class TextView: UITextView {
             if emojiRangeCheck.location < 0 || emojiRangeCheck.length > storage.textStore.length { return nil}
             let possibleEmoji = storage.attributedSubstring(from: emojiRangeCheck)
             
+            let digitsCharacters = CharacterSet(charactersIn: "0123456789")
+
             if !possibleEmoji.string.unicodeScalars.isEmpty {
                 if possibleEmoji.string.unicodeScalars.contains(where: {$0 == "#"}) { return nil }
+                if CharacterSet(charactersIn: possibleEmoji.string).isSubset(of: digitsCharacters) { return nil }
                 if possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isAlphabetic }) { return nil}
+                if possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isMath}) { return nil}
                 if !possibleEmoji.string.unicodeScalars.contains(where: { $0.properties.isEmoji }) {
                     continue
                 }
