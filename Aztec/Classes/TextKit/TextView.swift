@@ -821,6 +821,28 @@ open class TextView: UITextView {
         if selectedRange == NSRange(location: 0, length: 0) { return }
         
         if let emojiCheckRange = checkForPossibleEmoji(in: selectedRange) {
+            if let mentionRange = mentionInCreationRange {
+                self.mentionInCreationRange = NSRange(location: self.mentionInCreationRange?.location ?? 0, length: (self.mentionInCreationRange?.length ?? 0) - abs(emojiCheckRange.length))
+                
+                if self.mentionInCreationRange?.length ?? 0 < 0 {
+                    self.mentionInCreationRange = nil
+                    textMentionDelegate?.textView(self, didRemoveMentionChar: true)
+                }else {
+                    textMentionDelegate?.textView(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: mentionInCreationRange!)!)!, isAppending: false)
+                }
+            }
+            
+            if let mentionRange = itemMentionInCreationRange {
+                self.itemMentionInCreationRange = NSRange(location: self.itemMentionInCreationRange?.location ?? 0, length: (self.itemMentionInCreationRange?.length ?? 0) - abs(emojiCheckRange.length))
+                
+                if self.itemMentionInCreationRange?.length ?? 0 < 0 {
+                    self.itemMentionInCreationRange = nil
+                    textItemMentionDelegate?.textViewItemMention(self, didRemoveItemMentionChar: true)
+                }else {
+                    textItemMentionDelegate?.textViewItemMention(self, didChangeSearchPredicate: self.text(in: textRangeFromNSRange(range: itemMentionInCreationRange!)!)!, isAppending: false)
+                }
+            }
+        
             super.deleteBackward()
             return
         }
