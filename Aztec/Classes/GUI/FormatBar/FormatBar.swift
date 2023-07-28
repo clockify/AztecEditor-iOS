@@ -646,11 +646,13 @@ private extension FormatBar {
         scrollableStackView.addArrangedSubviews(overflowItems)
 
         scrollableStackView.subviews.forEach { subView in
-            subView.backgroundColor = Constants.buttonBackgroundColor
+            subView.backgroundColor = self.traitCollection.userInterfaceStyle == .dark ? Constants.buttonBackgroundColorDark : Constants.buttonBackgroundColorLight
+
 
             if let titleButton = subView as? FormatBarItem, checkIsTextView(button: titleButton) {
                 titleButton.widthAnchor.constraint(equalToConstant: Constants.textButtonWidth).isActive = true
-                titleButton.backgroundColor = Constants.buttonBackgroundColor
+                titleButton.backgroundColor = self.traitCollection.userInterfaceStyle == .dark ? Constants.buttonBackgroundColorDark : Constants.buttonBackgroundColorLight
+
                 titleButton.tintColor = .white
                 titleButton.setTitle(getTextViewTitle(button: titleButton), for: .normal)
                 titleButton.setImage(Constants.textButtonImage, for: .normal)
@@ -953,8 +955,9 @@ extension FormatBar {
         static let highlightTintColor: UIColor = UIColor(hex: "F85383")
         
         static let textButtonWidth: CGFloat = 135
-        static let buttonBackgroundColor: UIColor = UIColor(hex: "272637")
-        
+        static let buttonBackgroundColorDark: UIColor = UIColor(hex: "272637")
+        static let buttonBackgroundColorLight: UIColor = UIColor(hex: "C7C6D8")
+
         static let textButtonImage: UIImage = UIImage(named: "chevron") ?? UIImage()
         
         static let textButtonNormalLeading: CGFloat = 10
