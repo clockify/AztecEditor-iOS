@@ -653,8 +653,9 @@ private extension FormatBar {
                 titleButton.widthAnchor.constraint(equalToConstant: Constants.textButtonWidth).isActive = true
                 titleButton.backgroundColor = self.traitCollection.userInterfaceStyle == .dark ? Constants.buttonBackgroundColorDark : Constants.buttonBackgroundColorLight
 
-                titleButton.tintColor = .white
                 titleButton.setTitle(getTextViewTitle(button: titleButton), for: .normal)
+                titleButton.setTitleColor(self.traitCollection.userInterfaceStyle == .dark ? UIColor(hexString: "9d9caa") : UIColor(hexString: "74737f"), for: .normal)
+
                 titleButton.setImage(Constants.textButtonImage, for: .normal)
                 titleButton.semanticContentAttribute = .forceRightToLeft
                 
