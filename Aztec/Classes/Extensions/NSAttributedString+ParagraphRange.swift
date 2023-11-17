@@ -45,16 +45,16 @@ extension NSAttributedString {
     func paragraphRanges(intersecting range: NSRange) -> ([ParagraphRange]) {
         var paragraphRanges = [ParagraphRange]()
         let swiftRange = string.range(fromUTF16NSRange: range)
-        
-        var paragraphsRange: Range<String.Index>
-        
-        if string.utf16.count == 1 {
-            let a = string.range(from: NSRange(location: 0, length: 0))
-            paragraphsRange = string.paragraphRange(for: a)
-        }else {
-            paragraphsRange = string.paragraphRange(for: swiftRange)
-        }
-        
+        let paragraphsRange = string.paragraphRange(for: swiftRange)
+//                var paragraphsRange: Range<String.Index>
+//
+//        if string == String(.paragraphSeparator) {
+//            let a = string.range(from: NSRange(location: 0, length: 0))
+//            paragraphsRange = string.paragraphRange(for: a)
+//        }else {
+//            paragraphsRange = string.paragraphRange(for: swiftRange)
+//        }
+//
         string.enumerateSubstrings(in: paragraphsRange, options: .byParagraphs) { [unowned self] (substring, substringRange, enclosingRange, stop) in
             let substringNSRange = self.string.utf16NSRange(from: substringRange)
             let enclosingNSRange = self.string.utf16NSRange(from: enclosingRange)
@@ -71,14 +71,15 @@ extension NSAttributedString {
     ///
     func paragraphRange(for range: NSRange) -> NSRange {
         let swiftRange = string.range(fromUTF16NSRange: range)
-        if string.utf16.count == 1 {
-            return NSRange(location: range.location, length: 1)
-        }else {
-            let outRange = string.paragraphRange(for: swiftRange)
-            return string.utf16NSRange(from: outRange)
-        }
+        let outRange = string.paragraphRange(for: swiftRange)
+//        if string == String(.paragraphSeparator) {
+//            return NSRange(location: range.location, length: 1)
+//        }else {
+//            let outRange = string.paragraphRange(for: swiftRange)
+//            return string.utf16NSRange(from: outRange)
+//        }
         
-//        return string.utf16NSRange(from: outRange)
+        return string.utf16NSRange(from: outRange)
     }
     
     func paragraphRange(for attachment: NSTextAttachment) -> NSRange {
